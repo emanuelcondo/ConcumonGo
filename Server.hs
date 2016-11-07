@@ -1,10 +1,9 @@
 module Server where
 
-data Server = Server {
-                        init::Bool
-                    } deriving Show
+import LoginJugadores
+import Control.Concurrent
 
-
-
-inicializado :: Server -> Bool
-inicializado (Server init) = init
+main = do
+    putStrLn "[SVR]\tIniciando Servidor"
+    forkIO (LoginJugadores.main)
+    putStrLn "[SVR]\tCerrando Servidor"
