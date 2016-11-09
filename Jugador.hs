@@ -14,11 +14,12 @@ data Posicion = Posicion
 main :: IO ()
 main = do
     putStrLn "[JUG]\tSoy un nuevo jugador"
+    putStrLn "[JUG]\tMe intento loguear."
+    -- Usar putTMVar
+    putStrLn "[JUG]\tLogue correcto."
 
     putStrLn "[JUG]\tMe muevo"
-
     moverse
-
     putStrLn "[JUG]\tSaliendo del juego"
 
 
