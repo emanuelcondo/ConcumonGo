@@ -14,13 +14,19 @@ data Posicion = Posicion
 main :: IO ()
 main = do
     putStrLn "[JUG]\tSoy un nuevo jugador"
-    putStrLn "[JUG]\tMe intento loguear."
-    -- Usar putTMVar
+
     putStrLn "[JUG]\tLogue correcto."
 
-    putStrLn "[JUG]\tMe muevo"
     moverse
+
     putStrLn "[JUG]\tSaliendo del juego"
+
+
+
+-- Funcion que permite loguear el jugador en el Servidor.module
+loguearse = do
+    putStrLn "[JUG]\tMe intento loguear."
+        -- Usar putTMVar
 
 
 -- Funcion que pone a mover el jugador en en tablero.
