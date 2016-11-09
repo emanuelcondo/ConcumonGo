@@ -15,5 +15,5 @@ main = do
     -- estaría bueno ver la forma de que este main espere
     -- a que termine los 2 threads anteriores (el delay es temporal, ya que si
     -- termina este thread se "matan" a los otros thread sin terminar)
-    threadDelay $ 2 * 10^(6 :: Integer)
+    threadDelay $ 2 * 10^(6 :: Int)
     putStrLn "[Main]\tCerrando ConcumonGo"
