@@ -23,7 +23,6 @@ data Casillero = Casillero {
         posicion :: Posicion,
         estado :: Estado
         }
-
 -- Tipo que define el tablero para usar con bloques atomically
 type Tablero = TVar [Casillero]
 

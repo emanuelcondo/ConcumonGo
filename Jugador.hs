@@ -4,23 +4,19 @@ import Control.Concurrent
 import Control.Concurrent.STM
 
 
--- Tipo que contabilizara la sumatoria de puntaje del jugador en la partida
-newtype Puntaje = Puntaje Int
-    deriving (Eq, Ord, Show)
-
-type Tablero = TVar Puntaje
-
 data Posicion = Posicion
     { x :: Int
     , y :: Int
     }
     deriving (Show)
 
-
 main :: IO ()
 main = do
     putStrLn "[JUG]\tSoy un nuevo jugador"
-    putStrLn "[JUG]\tLogue correcto."
+
+    loguearse
+
+    putStrLn "[JUG]\tLogueo correcto."
 
     moverse
 
@@ -38,4 +34,11 @@ moverse = do
     putStrLn "[JUG]\t Estoy en posicion: (x,y) me muevo A: "
     -- Elijo aleatoreamente alguna direccion de casillero contiguo
     -- Hago un readTvar para ver si el casillero esta libre, sino repito.module
+    -- Con writeTvar escrivo mi nueva posicion en tablero.
+
+
+actualizarPuntaje = do
+    putStrLn "[JUG]\t Encontre pokemon, Actualizo Puntaje"
+    -- Actualiza su puntaje en el Sysadmin.
+
 
