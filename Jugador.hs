@@ -24,12 +24,14 @@ main = do
 
 
 -- Funcion que permite loguear el jugador en el Servidor.module
+loguearse :: IO ()
 loguearse = do
     putStrLn "[JUG]\tMe intento loguear."
     -- Usar putTMVar
 
 
 -- Funcion que pone a mover el jugador en en tablero.
+moverse :: IO ()
 moverse = do
     putStrLn "[JUG]\t Estoy en posicion: (x,y) me muevo A: "
     -- Elijo aleatoreamente alguna direccion de casillero contiguo
@@ -37,8 +39,7 @@ moverse = do
     -- Con writeTvar escrivo mi nueva posicion en tablero.
 
 
+actualizarPuntaje :: IO ()
 actualizarPuntaje = do
     putStrLn "[JUG]\t Encontre pokemon, Actualizo Puntaje"
     -- Actualiza su puntaje en el Sysadmin.
-
-

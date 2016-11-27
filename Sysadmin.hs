@@ -17,6 +17,10 @@ main = do
     threadDelay $ 3 * 10^(6 :: Int)
 
 
+actualizarPuntaje :: IO ()
 actualizarPuntaje = do
-        putStrLn "[SYS]\t Actualizando puntaje Jugador"
+    putStrLn "[SYS]\t Actualizando puntaje Jugador"
 
+imprimirPuntajes :: IO ()
+imprimirPuntajes = do
+    putStrLn "[SYS] Puntajes jugadores:"
