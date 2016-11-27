@@ -1,9 +1,11 @@
-module Server where
+module Server
+( Server.main
+) where
+
 import Control.Concurrent
 import Control.Concurrent.STM
-
 import Config
-
+import Logger
 
 data Jugador = Jugador {
               nombre :: String,
@@ -21,7 +23,7 @@ type SolicitudLogueo = TMVar Jugador
 
 main :: QSem -> Chan String -> Chan String -> IO ()
 main semMaxJug loginChannel acceptLoginChannel = do
-    putStrLn "[SVR]\tEmpezando server"
+    log' "Empezando server"
 --    maxJug <- maxJugadores
 --    putStrLn $ "[SVR]\tMáxima cantidad de jugadores es " ++ (show semMaxJug)
     esperandoLogueo semMaxJug loginChannel acceptLoginChannel
@@ -30,11 +32,13 @@ main semMaxJug loginChannel acceptLoginChannel = do
 -- Función que espera logueos nuevos de jugadores
 esperandoLogueo :: QSem -> Chan String -> Chan String -> IO ()
 esperandoLogueo semMaxJug loginChannel acceptLoginChannel = do
-        putStrLn "[SVR]\tEsperando logueos de Jugadores"
+        log' "Esperando logueos de Jugadores"
         waitQSem semMaxJug
         id_Jug <- readChan loginChannel
-        -- Usar takeTMVar SolicitudLogueo
 
         writeChan acceptLoginChannel id_Jug
         -- En caso de no haber solicitudes de logueo se queda bloquedo esperando nuevas solicitudes.
         threadDelay $ 5 * 10^(6 :: Int)
+
+log' :: String -> IO ()
+log' = cgLog "SVR"

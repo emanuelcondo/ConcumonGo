@@ -1,6 +1,9 @@
-module GeneradorDeJugadores where
+module GeneradorDeJugadores
+( GeneradorDeJugadores.main
+) where
 
 import Jugador
+import Logger
 import Control.Concurrent
 
 -- el main tiene debe tener un loop donde cada cierto tiempo se intenta loggear
@@ -10,10 +13,15 @@ import Control.Concurrent
 
 main :: QSem -> Chan String -> Chan String -> Chan String -> IO ()
 main semMaxJug loginChannel acceptLoginChannel eventChannel = do
-    putStrLn "[GDJ]\tIniciando Generador De Jugadores"
+    log' "Iniciando Generador De Jugadores"
     let id_Jug = "1"
     writeChan loginChannel "ID_JUGADOR"
     _ <- readChan acceptLoginChannel
     _ <- forkIO (Jugador.main semMaxJug eventChannel)
+
     threadDelay $ 10 * 10^(6 :: Int)
-    putStrLn "[GDJ]\tCerrando Generador De Jugadores"
+    log' "Cerrando Generador De Jugadores"
+
+
+log' :: String -> IO ()
+log' = cgLog "GDJ"

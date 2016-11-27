@@ -1,6 +1,9 @@
-module Juego where
+module Juego
+( Juego.main
+) where
 
 import Config
+import Logger
 import NidoConcumones
 import Control.Concurrent
 import Control.Concurrent.STM
@@ -28,17 +31,37 @@ data Casillero = Casillero {
 -- Tipo que define el tablero para usar con bloques atomically
 type Tablero = TVar [Casillero]
 
+
 -- Juego va a loopear esperando eventos (pueden movimientos de concumones ó jugadores) ó
 -- consultas de Sysadmin, asi que hay que hacer un check cuando se haga un readChan
 -- de eventChannel. En caso de que sea un evento de Sysadmin, deberíamos hacer un print de
 -- los scores (que mejor que usar un hash).
 main :: Chan String -> IO ()
 main eventChannel = do
-    putStrLn "[JGO]\tIniciando Juego ConcumonGo"
 
+    log' "Iniciando Juego ConcumonGo"
     let scores = Map.empty -- map para guardar puntajes
+    -- Alguna matriz de (0,1) -> 0: no hay Concumon
+    --                           1: hay un Concumon
 
     _ <- forkIO (NidoConcumones.main eventChannel)
     tamMapa <- tamGrilla
-    putStrLn ("[JGO]\tTamaño de la grilla: " ++ show tamMapa)
-    putStrLn "[JGO]\tTerminando Juego"
+    log' $ "Tamaño de la grilla: " ++ show tamMapa
+    log' "Terminando Juego"
+
+-- Creación de mapa
+
+--moverJugadorEnMapa :: STM Posicion
+--moverJugadorEnMapa = do
+--    putStrLn "[JGO]\tMuevo "
+--    return 0
+
+-- Devuelve True si hay concumón en la posición
+--hayConcumon :: Posicion -> Bool
+--hayConcumon = do
+--    return False
+    -- TODO
+
+
+log' :: String -> IO ()
+log' = cgLog "JGO"
