@@ -1,11 +1,18 @@
-module GeneradorDeJugadores where
+module GeneradorDeJugadores
+( GeneradorDeJugadores.main
+) where
 
 import Jugador
+import Logger
 import Control.Concurrent
 
 main :: IO ()
 main = do
-    putStrLn "[GDJ]\tIniciando Generador De Jugadores"
+    log' "Iniciando Generador De Jugadores"
     _ <- forkIO Jugador.main
     threadDelay $ 10 * 10^(6 :: Int)
-    putStrLn "[GDJ]\tCerrando Generador De Jugadores"
+    log' "Cerrando Generador De Jugadores"
+
+
+log' :: String -> IO ()
+log' = cgLog "GDJ"

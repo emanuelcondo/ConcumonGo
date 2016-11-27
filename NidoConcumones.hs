@@ -1,13 +1,19 @@
-module NidoConcumones where
+module NidoConcumones
+( NidoConcumones.main
+) where
 
 import Config
+import Logger
 import Concumon
 import Control.Concurrent
 
 main :: IO ()
 main = do
-    putStrLn "[NID]\tIniciando Nido de Concumones"
+    log' "Iniciando Nido de Concumones"
     _ <- forkIO Concumon.main
     maxConcu <- maxConcumons
-    putStrLn ("[NID]\tHasta " ++ show maxConcu ++ " concumons al mismo tiempo")
-    putStrLn "[NID]\tCerrando Nido de Concumones"
+    log' $ "Hasta " ++ show maxConcu ++ " concumons al mismo tiempo"
+    log' "Cerrando Nido de Concumones"
+
+log' :: String -> IO ()
+log' = cgLog "NID"

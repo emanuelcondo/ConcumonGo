@@ -1,6 +1,10 @@
-module Sysadmin where
+module Sysadmin
+( Sysadmin.main
+) where
+
 import Control.Concurrent
 import Control.Concurrent.STM
+import Logger
 
 -- Tipo que contabilizara la sumatoria de puntaje del los jugadores en la partida.
 
@@ -13,14 +17,17 @@ type ListaJugadores = TVar [Jugador]
 
 main :: IO ()
 main = do
-    putStrLn "[SYS]\tIniciando Sysadmin"
+    log' "Iniciando Sysadmin"
     threadDelay $ 3 * 10^(6 :: Int)
 
 
 actualizarPuntaje :: IO ()
 actualizarPuntaje = do
-    putStrLn "[SYS]\t Actualizando puntaje Jugador"
+    log' "Actualizando puntaje Jugador"
 
 imprimirPuntajes :: IO ()
 imprimirPuntajes = do
-    putStrLn "[SYS] Puntajes jugadores:"
+    log' "Puntajes jugadores:"
+
+log' :: String -> IO ()
+log' = cgLog "SYS"

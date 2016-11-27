@@ -1,6 +1,9 @@
-module Juego where
+module Juego
+( Juego.main
+) where
 
 import Config
+import Logger
 import NidoConcumones
 import Control.Concurrent
 import Control.Concurrent.STM
@@ -29,10 +32,25 @@ type Tablero = TVar [Casillero]
 
 main :: IO ()
 main = do
-    putStrLn "[JGO]\tIniciando Juego ConcumonGo"
+    log' "Iniciando Juego ConcumonGo"
     _ <- forkIO NidoConcumones.main
     tamMapa <- tamGrilla
-    putStrLn ("[JGO]\tTamaño de la grilla: " ++ show tamMapa)
-    putStrLn "[JGO]\tTerminando Juego"
+    log' $ "Tamaño de la grilla: " ++ show tamMapa
+    log' "Terminando Juego"
+
+-- Creación de mapa
+
+--moverJugadorEnMapa :: STM Posicion
+--moverJugadorEnMapa = do
+--    putStrLn "[JGO]\tMuevo "
+--    return 0
+
+-- Devuelve True si hay concumón en la posición
+--hayConcumon :: Posicion -> Bool
+--hayConcumon = do
+--    return False
+    -- TODO
 
 
+log' :: String -> IO ()
+log' = cgLog "JGO"

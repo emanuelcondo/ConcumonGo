@@ -1,4 +1,11 @@
-module Config where
+module Config
+( xGrilla
+, yGrilla
+, tamGrilla
+, delayConcumons
+, maxConcumons
+, maxJugadores
+) where
 
 import Data.ConfigFile
 import Data.Either.Utils

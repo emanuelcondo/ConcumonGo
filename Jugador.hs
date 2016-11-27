@@ -1,4 +1,8 @@
-module Jugador where
+module Jugador
+( Jugador.main
+) where
+
+import Logger
 import Control.Monad
 import Control.Concurrent
 import Control.Concurrent.STM
@@ -12,34 +16,35 @@ data Posicion = Posicion
 
 main :: IO ()
 main = do
-    putStrLn "[JUG]\tSoy un nuevo jugador"
-
+    log' "Soy un nuevo jugador"
     loguearse
-
-    putStrLn "[JUG]\tLogueo correcto."
-
+    log' "Logueo correcto."
     moverse
-
-    putStrLn "[JUG]\tSaliendo del juego"
+    log' "Saliendo del juego"
 
 
 -- Funcion que permite loguear el jugador en el Servidor.module
 loguearse :: IO ()
 loguearse = do
-    putStrLn "[JUG]\tMe intento loguear."
+    log' "Me intento loguear."
     -- Usar putTMVar
 
 
 -- Funcion que pone a mover el jugador en en tablero.
 moverse :: IO ()
 moverse = do
-    putStrLn "[JUG]\t Estoy en posicion: (x,y) me muevo A: "
     -- Elijo aleatoreamente alguna direccion de casillero contiguo
-    -- Hago un readTvar para ver si el casillero esta libre, sino repito.module
-    -- Con writeTvar escrivo mi nueva posicion en tablero.
+    log' "Estoy en posicion: (x,y) me muevo a: "
+    -- Hago un readTvar para ver si el casillero está libre, sino repito.module
+        -- mc: Se puede hacer con retry (https://en.wikipedia.org/wiki/Concurrent_Haskell)
+    -- Con writeTvar escribo mi nueva posicion en tablero.
 
 
 actualizarPuntaje :: IO ()
 actualizarPuntaje = do
-    putStrLn "[JUG]\t Encontre pokemon, Actualizo Puntaje"
+    log' "Encontre pokemon, Actualizo Puntaje"
     -- Actualiza su puntaje en el Sysadmin.
+
+
+log' :: String -> IO ()
+log' = cgLog "JUG"
