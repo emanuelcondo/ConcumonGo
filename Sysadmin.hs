@@ -11,8 +11,12 @@ data Jugador = Jugador {
 
 type ListaJugadores = TVar [Jugador]
 
-main :: IO ()
-main = do
+
+-- Sysadmin cada cierto tiempo envía un mensaje mediante el canal para ver los
+-- scores de los Jugadores.
+
+main :: Chan String -> IO ()
+main eventChannel = do
     putStrLn "[SYS]\tIniciando Sysadmin"
     threadDelay $ 3 * 10^(6 :: Int)
 

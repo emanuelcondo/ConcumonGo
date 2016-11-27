@@ -1,8 +1,6 @@
 module Jugador where
 import Control.Monad
 import Control.Concurrent
-import Control.Concurrent.STM
-
 
 data Posicion = Posicion
     { x :: Int
@@ -10,8 +8,14 @@ data Posicion = Posicion
     }
     deriving (Show)
 
-main :: IO ()
-main = do
+-- el Jugador va a ejecutar movimientos cada cierto tiempo al azar y lo envía por el canal
+-- haciendo un writeChan de eventChannel y el Juego se va a encargar de procesar
+-- lo que haga falta. Debe haber un random (0,1) para ver si el jugador quiere seguir
+-- jugando. Una vez que deja el juego se hace un signalQSem de semMaxJug para habilitar
+-- al Server para que pueda entrar otro jugador, si es que hay.
+
+main :: QSem -> Chan String -> IO ()
+main semMaxJug eventChannel = do
     putStrLn "[JUG]\tSoy un nuevo jugador"
 
     loguearse
@@ -19,7 +23,7 @@ main = do
     putStrLn "[JUG]\tLogueo correcto."
 
     moverse
-
+    signalQSem semMaxJug
     putStrLn "[JUG]\tSaliendo del juego"
 
 
@@ -36,7 +40,7 @@ moverse = do
     putStrLn "[JUG]\t Estoy en posicion: (x,y) me muevo A: "
     -- Elijo aleatoreamente alguna direccion de casillero contiguo
     -- Hago un readTvar para ver si el casillero esta libre, sino repito.module
-    -- Con writeTvar escrivo mi nueva posicion en tablero.
+    -- Con writeTvar escribo mi nueva posicion en tablero.
 
 
 actualizarPuntaje :: IO ()

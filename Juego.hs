@@ -5,6 +5,8 @@ import NidoConcumones
 import Control.Concurrent
 import Control.Concurrent.STM
 import Control.Monad
+import Data.Map (Map, (!))
+import qualified Data.Map as Map
 
 
 --Estructura que define el tablero
@@ -26,13 +28,17 @@ data Casillero = Casillero {
 -- Tipo que define el tablero para usar con bloques atomically
 type Tablero = TVar [Casillero]
 
-
-main :: IO ()
-main = do
+-- Juego va a loopear esperando eventos (pueden movimientos de concumones ó jugadores) ó
+-- consultas de Sysadmin, asi que hay que hacer un check cuando se haga un readChan
+-- de eventChannel. En caso de que sea un evento de Sysadmin, deberíamos hacer un print de
+-- los scores (que mejor que usar un hash).
+main :: Chan String -> IO ()
+main eventChannel = do
     putStrLn "[JGO]\tIniciando Juego ConcumonGo"
-    _ <- forkIO NidoConcumones.main
+
+    let scores = Map.empty -- map para guardar puntajes
+
+    _ <- forkIO (NidoConcumones.main eventChannel)
     tamMapa <- tamGrilla
     putStrLn ("[JGO]\tTamaño de la grilla: " ++ show tamMapa)
     putStrLn "[JGO]\tTerminando Juego"
-
-
