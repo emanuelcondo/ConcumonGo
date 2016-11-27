@@ -1,20 +1,10 @@
 import qualified Juego
+import qualified Server
 import qualified GeneradorDeJugadores
 import qualified Sysadmin
-import Config
 import Control.Concurrent
-import Control.Concurrent.STM
 import Control.Monad
 import Data.Maybe
-
-
-data Jugador = Jugador {
-              nombre :: String,
-              id :: Int
-              }
-
--- Estructura que permite a un jugador solicitar logueo.
-type SolicitudLogueo = TMVar Jugador
 
 
 main :: IO ()
@@ -29,22 +19,13 @@ main = do
     -- termina este thread se "matan" a los otros thread sin terminar)
     threadDelay $ 2 * 10^(6 :: Int)
     putStrLn "[Main]\tCargando parámetros de configuración"
-    maxJug <- maxJugadores
-    putStrLn $ "[Main]\tMáxima cantidad de jugadores es " ++ show maxJug
 
-    esperandoLogueo
+    -- O empezar desde juego??
+    _ <- forkIO Server.main
 
     interfaz
 
     putStrLn "[Main]\tCerrando ConcumonGo"
-
--- Función que espera logueos nuevos de jugadores
-esperandoLogueo :: IO ()
-esperandoLogueo = do
-        putStrLn "[SVR]\tEsperando logueos de Jugadores"
-        -- Usar takeTMVar SolicitudLogueo
-        -- En caso de no haber solicitudes de logueo se queda bloquedo esperando nuevas solicitudes.
-        threadDelay $ 5 * 10^(6 :: Int)
 
 
 interfaz :: IO ()
