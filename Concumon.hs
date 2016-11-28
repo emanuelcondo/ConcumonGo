@@ -10,8 +10,8 @@ main :: QSem -> Chan String -> IO ()
 main semMaxConcu eventChannel = do
     log' "Soy un nuevo concumón... atrapame!!!"
 
-    tamX <- xGrilla
-    tamY <- yGrilla
+    --tamX <- xGrilla
+    --tamY <- yGrilla
 
     delay <- delayConcumons
     log' $ "Delay de " ++ show delay ++ " antes de moverme"
@@ -22,6 +22,7 @@ main semMaxConcu eventChannel = do
     signalQSem semMaxConcu
 
 
+moverse :: IO ()
 moverse = do
     log' $ "Soy un concumon, me movi!"
     --Generar RND punto destino (x,y)

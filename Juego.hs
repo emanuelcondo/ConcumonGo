@@ -1,5 +1,6 @@
 module Juego
 ( Juego.main
+, Posicion(..)
 ) where
 
 import Config
@@ -13,11 +14,7 @@ import qualified Data.Map as Map
 
 
 --Estructura que define el tablero
-data Posicion = Posicion
-    { x :: Int
-    , y :: Int
-    }
-    deriving (Show)
+data Posicion = Posicion Int Int deriving (Show)
 
 data Estado = Libre
             | Ocupado

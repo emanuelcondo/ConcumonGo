@@ -22,16 +22,19 @@ type ListaJugadores = TVar [Jugador]
 main :: Chan String -> IO ()
 main eventChannel = do
     log' "Iniciando Sysadmin"
+    -- TODO
     threadDelay $ 3 * 10^(6 :: Int)
 
 
 actualizarPuntaje :: IO ()
 actualizarPuntaje = do
     log' "Actualizando puntaje Jugador"
+    -- TODO
 
 imprimirPuntajes :: IO ()
 imprimirPuntajes = do
     log' "Puntajes jugadores:"
+    -- TODO
 
 log' :: String -> IO ()
 log' = cgLog "SYS"
