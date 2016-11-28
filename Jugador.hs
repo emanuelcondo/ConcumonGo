@@ -22,6 +22,8 @@ main idJug pos semMaxJug eventChannel = do
     --TODO escribir en eventChannel dónde comienzo
     moverse
 
+    actualizarPuntaje eventChannel
+
     threadDelay $ 10 * 10^(6 :: Int)---
 
     log' $ "Ya me cansé (id " ++ show idJug ++ ")"
@@ -46,9 +48,13 @@ moverse = do
     -- Con writeTvar escribo mi nueva posicion en tablero.
 
 
-actualizarPuntaje :: IO ()
-actualizarPuntaje = do
+actualizarPuntaje :: Chan String -> IO ()
+
+actualizarPuntaje eventChannel = do
     log' "Encontré concumón, actualizo puntaje"
+
+    --Envio Puntaje al Sysadmin
+    writeChan eventChannel "idJugador,Puntaje"
     -- Actualiza su puntaje en el Sysadmin.
 
 

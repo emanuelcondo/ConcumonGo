@@ -26,9 +26,12 @@ main eventChannel = do
     threadDelay $ 3 * 10^(6 :: Int)
 
 
-actualizarPuntaje :: IO ()
-actualizarPuntaje = do
+actualizarPuntaje :: Chan String -> IO ()
+actualizarPuntaje eventChannel = do
     log' "Actualizando puntaje Jugador"
+    --Leo Canal de puntaje
+    readChan eventChannel >>= print
+
     -- TODO
 
 imprimirPuntajes :: IO ()
