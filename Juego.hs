@@ -1,5 +1,6 @@
 module Juego
 ( Juego.main
+, Posicion(..)
 ) where
 
 import Config
@@ -14,11 +15,7 @@ import Grilla
 
 
 --Estructura que define el tablero
-data Posicion = Posicion
-    { x :: Int
-    , y :: Int
-    }
-    deriving (Show)
+data Posicion = Posicion Int Int deriving (Show)
 
 data Estado = Libre
             | Ocupado
