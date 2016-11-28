@@ -10,6 +10,7 @@ import Control.Concurrent.STM
 import Control.Monad
 import Data.Map (Map, (!))
 import qualified Data.Map as Map
+import Grilla
 
 
 --Estructura que define el tablero
@@ -40,6 +41,12 @@ main :: Chan String -> IO ()
 main eventChannel = do
 
     log' "Iniciando Juego ConcumonGo"
+    ancho <- xGrilla
+    alto <- yGrilla
+    let grilla = (Grilla.crearGrilla ancho alto)
+    print grilla
+    let grilla' = (Grilla.setValorPosicion grilla 2 2 9)
+    print grilla'
     let scores = Map.empty -- map para guardar puntajes
     -- Alguna matriz de (0,1) -> 0: no hay Concumon
     --                           1: hay un Concumon
