@@ -5,7 +5,6 @@ import qualified Sysadmin
 import Config
 import Logger
 import Grilla
-
 import System.IO
 import Control.Concurrent
 import Control.Concurrent.STM
@@ -30,6 +29,10 @@ main = do
     requestLoginChannel <- atomically newTChan      -- Canal de mensajes para pedir login de jugadores
     acceptLoginChannel <- atomically newBroadcastTChan      -- Canal de mensajes para aceptar login de jugadores, de tipo Broadcast
     eventChannel <- newChan     -- Canal para movimientos (Concumones y jugadores) y pedidos de scores desde Sysadmin
+    puntajeChan <- newChan      -- Canal que usa un jugador para avisar que suma puntaje.
+
+    -- Estructura para manejar el puntaje acumulado de Jugadores.
+    puntajeTVar <- atomically $ newTVar 0
 
     -- Alguna matriz de (0,1) -> 0: no hay Concumon
     --                           1: hay un Concumon
@@ -42,8 +45,8 @@ main = do
 
     _ <- forkIO (Juego.main semLeer sharedGrid eventChannel logChan)
     _ <- forkIO (Server.main semMaxJug requestLoginChannel acceptLoginChannel logChan)
-    _ <- forkIO (GeneradorDeJugadores.main semMaxJug semLeer sharedGrid requestLoginChannel acceptLoginChannel eventChannel logChan)
-    _ <- forkIO (Sysadmin.main eventChannel logChan)
+    _ <- forkIO (GeneradorDeJugadores.main semMaxJug semLeer sharedGrid requestLoginChannel acceptLoginChannel puntajeChan logChan)
+    _ <- forkIO (Sysadmin.main puntajeChan puntajeTVar)
 
     interfaz logChan
 
