@@ -51,8 +51,35 @@ updateGrid sharedGrid x y value = do
         writeTVar sharedGrid (replaceElementMatrix x y value dato) )
 
 getPosicionesVecinas :: [[Int]] -> Posicion -> [Posicion]
-getPosicionesVecinas grid posicion = [] --TODO agregar funcionalidad
+getPosicionesVecinas grid posicion = do --[] --TODO agregar funcionalidad
+    let x_ini = (getX posicion) - 1
+        x_fin = (getX posicion) + 1
+        y_ini = (getY posicion) - 1
+        y_fin = (getY posicion) + 1
+        posicionesAlrededor = [Posicion x y | y <- [y_ini..y_fin], x <- [x_ini..x_fin]]
+    (filtrarPosicionesValidas grid posicionesAlrededor posicion [])
 
+filtrarPosicionesValidas :: [[Int]] -> [Posicion] -> Posicion -> [Posicion]-> [Posicion]
+filtrarPosicionesValidas grid posiciones posActual result = do
+    if null posiciones
+        then
+            result
+        else do
+            let posAux = head posiciones
+            if posAux == posActual
+                then
+                    filtrarPosicionesValidas grid (tail posiciones) posActual result
+                else do
+                    let maxX = (length grid) - 1
+                        maxY = (length (grid !! 0)) - 1
+                        x = (getX posAux)
+                        y = (getY posAux)
+                    if x > maxX || x < 0 || y > maxY || y < 0
+                        then
+                            filtrarPosicionesValidas grid (tail posiciones) posActual result
+                        else do
+                            let posValida = head posiciones
+                            filtrarPosicionesValidas grid (tail posiciones) posActual (result ++ [posValida])
 
 generarPosRand :: IO Posicion
 generarPosRand = do

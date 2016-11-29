@@ -28,6 +28,7 @@ moverse posActual semLeer sharedGrid semMaxConcu delay logChan = do
         y = (getY posActual)
     waitQSem semLeer
     grid <- atomically $ readTVar sharedGrid
+    putStrLn $ "Grid: " ++ show grid
     let value = (Grilla.getValorPosicion grid x y)
     if value == 1 -- Verificamos que el concumón no fue atrapado
         then do
@@ -42,7 +43,7 @@ moverse posActual semLeer sharedGrid semMaxConcu delay logChan = do
             log' ("Delay de " ++ show delay ++ " para moverme de nuevo") logChan
             signalQSem semLeer
             threadDelay $ delay * 10^(6 :: Int)
-            moverse posActual semLeer sharedGrid semMaxConcu delay logChan
+            moverse proxPos semLeer sharedGrid semMaxConcu delay logChan
         else do
             log' "Fui atrapado :(" logChan
             signalQSem semLeer
