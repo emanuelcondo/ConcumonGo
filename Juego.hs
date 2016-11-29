@@ -25,8 +25,7 @@ main semLeer sharedGrid eventChannel = do
     let scores = Map.empty -- map para guardar puntajes
 
     _ <- forkIO (NidoConcumones.main semLeer sharedGrid eventChannel)
-    tamMapa <- tamGrilla
-    log' $ "Tamaño de la grilla: " ++ show tamMapa
+
     log' "Terminando Juego"
 
 -- Creación de mapa

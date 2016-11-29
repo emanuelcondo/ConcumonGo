@@ -11,6 +11,15 @@ import Config
 --Estructura que define el tablero
 data Posicion = Posicion Int Int deriving (Show)
 
+instance Eq Posicion where
+    (Posicion a b) == (Posicion c d) = (a == c && b == d)
+
+getX :: Posicion -> Int
+getX (Posicion x _) = x
+
+getY :: Posicion -> Int
+getY (Posicion _ y) = y
+
 data Estado = Libre
             | Ocupado
             | Concumon
@@ -40,6 +49,9 @@ updateGrid sharedGrid x y value = do
     atomically ( do
         dato <- readTVar sharedGrid
         writeTVar sharedGrid (replaceElementMatrix x y value dato) )
+
+getPosicionesVecinas :: [[Int]] -> Posicion -> [Posicion]
+getPosicionesVecinas grid posicion = [] --TODO agregar funcionalidad
 
 
 generarPosRand :: IO Posicion

@@ -30,6 +30,7 @@ main = do
     -- Alguna matriz de (0,1) -> 0: no hay Concumon
     --                           1: hay un Concumon
     let grid = (Grilla.crearGrilla ancho alto)
+    log' $ "Tamaño de la grilla: " ++ show ancho ++ " x " ++ show alto
     sharedGrid <- atomically $ newTVar grid
     semLeer <- newQSem 1 -- semáforo para leer sharedGrid
 

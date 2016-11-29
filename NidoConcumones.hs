@@ -27,24 +27,29 @@ main semLeer sharedGrid eventChannel = do
 generarConcumon semLeer sharedGrid semMaxConcu eventChannel = do
     waitQSem semMaxConcu
     waitQSem semLeer
---  TODO
---   - grid <- atomically $ readTVar sharedGrid
---   - pos_ini <- buscarPosiciónLibre grid (*)
---   - escribir sharedGrid (Grilla.updateGrid sharedGrid x y 1)
---   - pasar la posición inicial al concumón
-    -- chequear que está libre?
-    log' $ "Creando nuevo concumon al mismo tiempo"
-    _ <- forkIO (Concumon.main semLeer sharedGrid semMaxConcu eventChannel)
+
+    grid <- atomically $ readTVar sharedGrid
+    pos_ini <- buscarPosicionLibre grid
+    Grilla.updateGrid sharedGrid (getX pos_ini) (getY pos_ini) 1 -- ocupamos la grilla
+
+    log' $ "Creando nuevo concumon"
+    _ <- forkIO (Concumon.main pos_ini semLeer sharedGrid semMaxConcu eventChannel)
     signalQSem semLeer
     threadDelay (2 * 1000000)
     generarConcumon semLeer sharedGrid semMaxConcu eventChannel
 
---  TODO
-buscarPosicionLibre :: TVar [[Int]] -> IO Posicion
+
+buscarPosicionLibre :: [[Int]] -> IO Posicion
 buscarPosicionLibre grid = do
     pos <- generarPosRand
-    -- verificar hasta encontrar uno libre
-    return pos
+    let x = (getX pos)
+        y = (getY pos)
+        value = (Grilla.getValorPosicion grid x y)
+    if value == 1 --si está ocupado, seguimos buscando
+        then
+            buscarPosicionLibre grid
+        else
+            return pos
 
 log' :: String -> IO ()
 log' = cgLog "NID"
