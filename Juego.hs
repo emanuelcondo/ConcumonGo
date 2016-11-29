@@ -34,21 +34,14 @@ type Tablero = TVar [Casillero]
 -- consultas de Sysadmin, asi que hay que hacer un check cuando se haga un readChan
 -- de eventChannel. En caso de que sea un evento de Sysadmin, deberíamos hacer un print de
 -- los scores (que mejor que usar un hash).
-main :: Chan String -> IO ()
-main eventChannel = do
+main :: QSem -> TVar [[Int]]-> Chan String -> IO ()
+main semLeer sharedGrid eventChannel = do
 
     log' "Iniciando Juego ConcumonGo"
-    ancho <- xGrilla
-    alto <- yGrilla
-    let grilla = (Grilla.crearGrilla ancho alto)
-    print grilla
-    let grilla' = (Grilla.setValorPosicion grilla 2 2 9)
-    print grilla'
-    let scores = Map.empty -- map para guardar puntajes
-    -- Alguna matriz de (0,1) -> 0: no hay Concumon
-    --                           1: hay un Concumon
 
-    _ <- forkIO (NidoConcumones.main eventChannel)
+    let scores = Map.empty -- map para guardar puntajes
+
+    _ <- forkIO (NidoConcumones.main semLeer sharedGrid eventChannel)
     tamMapa <- tamGrilla
     log' $ "Tamaño de la grilla: " ++ show tamMapa
     log' "Terminando Juego"

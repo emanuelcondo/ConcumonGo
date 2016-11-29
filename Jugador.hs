@@ -5,6 +5,7 @@ module Jugador
 import Logger
 import Juego
 import Control.Concurrent
+import Control.Concurrent.STM
 
 -- el Jugador va a ejecutar movimientos cada cierto tiempo al azar y lo envía por el canal
 -- haciendo un writeChan de eventChannel y el Juego se va a encargar de procesar
@@ -12,15 +13,15 @@ import Control.Concurrent
 -- jugando. Una vez que deja el juego se hace un signalQSem de semMaxJug para habilitar
 -- al Server para que pueda entrar otro jugador, si es que hay.
 
-main :: Int -> Posicion -> QSem -> Chan String -> IO ()
-main idJug pos semMaxJug eventChannel = do
+main :: Int -> Posicion -> QSem -> QSem -> TVar [[Int]] -> Chan String -> IO ()
+main idJug pos semMaxJug semLeer sharedGrid eventChannel = do
 
     log' $ "Soy un nuevo jugador (id " ++ show idJug ++ ")"
     --loguearse
     --log' "Logueo correcto."
     log' $ "Comienzo en " ++ show pos ++ " (id " ++ show idJug ++ ")"
     --TODO escribir en eventChannel dónde comienzo
-    moverse
+    moverse semLeer sharedGrid
 
     actualizarPuntaje eventChannel
 
@@ -39,8 +40,8 @@ main idJug pos semMaxJug eventChannel = do
 -- // El jugador ya se logueó desde Server
 
 -- Funcion que pone a mover el jugador en en tablero.
-moverse :: IO ()
-moverse = do
+moverse :: QSem -> TVar [[Int]] -> IO ()
+moverse semLeer sharedGrid = do
     -- Elijo aleatoreamente alguna direccion de casillero contiguo
     log' "Estoy en posición: (x1,y1) me muevo a (x2,y2)"
     -- Hago un readTvar para ver si el casillero está libre, sino repito.module

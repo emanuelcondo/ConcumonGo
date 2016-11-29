@@ -16,26 +16,26 @@ import Control.Concurrent.STM
 -- y luego hace un readChan a acceptLoginChannel (este último canal podría estar dentro de
 -- Jugador.hs ya que sino se bloquearía el GeneradorDeJugadores).
 
-main :: QSem -> TChan Int -> TChan Int -> Chan String -> IO ()
-main semMaxJug requestLoginChan acceptLoginChan eventChan = do
+main :: QSem -> QSem -> TVar [[Int]] ->TChan Int -> TChan Int -> Chan String -> IO ()
+main semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan eventChan = do
     log' "Iniciando Generador de Jugadores"
     myAcceptLoginChan <- atomically $ dupTChan acceptLoginChan
-    generarJugador 1 semMaxJug requestLoginChan myAcceptLoginChan eventChan
+    generarJugador 1 semMaxJug semLeer sharedGrid requestLoginChan myAcceptLoginChan eventChan
     -- TODO: waitChildren
     log' "Cerrando Generador De Jugadores"
 
-generarJugador :: Int -> QSem -> TChan Int -> TChan Int -> Chan String -> IO ()
-generarJugador idJug semMaxJug requestLoginChan acceptLoginChan eventChan = do
+generarJugador :: Int -> QSem -> QSem -> TVar [[Int]] -> TChan Int -> TChan Int -> Chan String -> IO ()
+generarJugador idJug semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan eventChan = do
     log' $ "Genero Jugador con id " ++ show idJug
     atomically $ writeTChan requestLoginChan idJug
     -- No escribo más al RLChannel hasta que sea aceptado este,
     -- por lo que no me hace falta chequear que sea para él en el retorno {1}
     _ <- atomically $ readTChan acceptLoginChan
     pos <- generarPosRand
-    thrId <- forkIO (Jugador.main idJug pos semMaxJug eventChan)
+    thrId <- forkIO (Jugador.main idJug pos semMaxJug semLeer sharedGrid eventChan)
     -- TODO: Reemplazar por método que los guarde y espere al final
     log' $ show idJug ++ " ingresó en " ++ show pos ++ ", con " ++ show thrId
-    generarJugador (idJug + 1) semMaxJug requestLoginChan acceptLoginChan eventChan
+    generarJugador (idJug + 1) semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan eventChan
 
 generarPosRand :: IO Posicion
 generarPosRand = do
