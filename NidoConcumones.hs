@@ -13,18 +13,19 @@ import Control.Concurrent.STM
 -- El NidoConcumones va a loopear generando concumones de manera acotada por maxConcu
 -- usando el semáforo semMaxConcu (haciendo waitQSem). Cuando se atrapa a un Concumon
 -- se hace un signalQSem (esto se hace desde Juego, el que lo sabe todo)
-main :: QSem -> TVar [[Int]] -> Chan String -> IO ()
-main semLeer sharedGrid eventChannel = do
-    log' "Iniciando Nido de Concumones"
+main :: QSem -> TVar [[Int]] -> Chan String -> TChan String -> IO ()
+main semLeer sharedGrid eventChannel logChan = do
+    log' "Iniciando Nido de Concumones" logChan
     maxConcu <- maxConcumons
     semMaxConcu <- newQSem maxConcu
-    log' $ "Hasta " ++ show maxConcu ++ " concumons al mismo tiempo"
+    log' ("Hasta " ++ show maxConcu ++ " concumons al mismo tiempo") logChan
 
-    generarConcumon semLeer sharedGrid semMaxConcu eventChannel
+    generarConcumon semLeer sharedGrid semMaxConcu eventChannel logChan
 
-    log' "Cerrando Nido de Concumones"
+    log' "Cerrando Nido de Concumones" logChan
 
-generarConcumon semLeer sharedGrid semMaxConcu eventChannel = do
+generarConcumon :: QSem -> TVar [[Int]] -> QSem -> Chan String -> TChan String -> IO ()
+generarConcumon semLeer sharedGrid semMaxConcu eventChannel logChan = do
     waitQSem semMaxConcu
     waitQSem semLeer
 
@@ -32,11 +33,12 @@ generarConcumon semLeer sharedGrid semMaxConcu eventChannel = do
     pos_ini <- buscarPosicionLibre grid
     Grilla.updateGrid sharedGrid (getX pos_ini) (getY pos_ini) 1 -- ocupamos la grilla
 
-    log' $ "Creando nuevo concumon"
-    _ <- forkIO (Concumon.main pos_ini semLeer sharedGrid semMaxConcu eventChannel)
+    log' "Creando nuevo concumon" logChan
+    _ <- forkIO (Concumon.main pos_ini semLeer sharedGrid semMaxConcu eventChannel logChan)
+
     signalQSem semLeer
-    threadDelay (2 * 1000000)
-    generarConcumon semLeer sharedGrid semMaxConcu eventChannel
+    threadDelay $ 3 * 10^(6 :: Int)
+    generarConcumon semLeer sharedGrid semMaxConcu eventChannel logChan
 
 
 buscarPosicionLibre :: [[Int]] -> IO Posicion
@@ -51,5 +53,5 @@ buscarPosicionLibre grid = do
         else
             return pos
 
-log' :: String -> IO ()
+log' :: String -> TChan String -> IO ()
 log' = cgLog "NID"
