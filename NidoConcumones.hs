@@ -5,6 +5,7 @@ module NidoConcumones
 import Config
 import Logger
 import Concumon
+import Grilla
 import Control.Concurrent
 import Control.Concurrent.STM
 
@@ -25,10 +26,21 @@ main semLeer sharedGrid eventChannel = do
 
 generarConcumon semLeer sharedGrid semMaxConcu eventChannel = do
     waitQSem semMaxConcu
+    waitQSem semLeer
+--  TODO
+--   - grid <- atomically $ readTVar sharedGrid
+--   - pos_ini <- buscarPosiciónLibre grid (*)
+--   - escribir sharedGrid (Grilla.updateGrid sharedGrid x y 1)
+--   - pasar la posición inicial al concumón
     log' $ "Creando nuevo concumon al mismo tiempo"
     _ <- forkIO (Concumon.main semLeer sharedGrid semMaxConcu eventChannel)
+    signalQSem semLeer
     threadDelay (2 * 1000000)
     generarConcumon semLeer sharedGrid semMaxConcu eventChannel
+
+--  TODO
+--(*) buscarPosicionLibre grid = do
+-- haciendo random y verificando hasta encontrar uno libre
 
 log' :: String -> IO ()
 log' = cgLog "NID"
