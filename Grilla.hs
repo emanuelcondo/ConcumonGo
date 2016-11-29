@@ -1,7 +1,28 @@
 module Grilla where
-import Control.Concurrent
+
+import System.Random
 import Control.Concurrent.STM
-import Data.List
+--import Control.Monad
+--import Data.Map (Map, (!))
+
+import Config
+
+
+--Estructura que define el tablero
+data Posicion = Posicion Int Int deriving (Show)
+
+data Estado = Libre
+            | Ocupado
+            | Concumon
+                deriving (Eq, Ord, Show)
+
+data Casillero = Casillero {
+        posicion :: Posicion,
+        estado :: Estado
+        }
+-- Tipo que define el tablero para usar con bloques atomically
+type Tablero = TVar [Casillero]
+
 
 crearGrilla ancho alto = [ [0 | y <-[1..ancho]] | x <- [1..alto]]
 
@@ -19,3 +40,17 @@ updateGrid sharedGrid x y value = do
     atomically ( do
         dato <- readTVar sharedGrid
         writeTVar sharedGrid (replaceElementMatrix x y value dato) )
+
+
+generarPosRand :: IO Posicion
+generarPosRand = do
+    genX <- newStdGen
+    genY <- newStdGen
+    maxX <- xGrilla
+    maxY <- yGrilla
+    let x = numRand genX (maxX - 1)
+        y = numRand genY (maxY - 1)
+    return $ Posicion x y
+
+numRand :: StdGen -> Int -> Int
+numRand gen max' = head $ randomRs (0, max') gen

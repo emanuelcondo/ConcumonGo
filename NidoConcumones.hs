@@ -32,6 +32,7 @@ generarConcumon semLeer sharedGrid semMaxConcu eventChannel = do
 --   - pos_ini <- buscarPosiciónLibre grid (*)
 --   - escribir sharedGrid (Grilla.updateGrid sharedGrid x y 1)
 --   - pasar la posición inicial al concumón
+    -- chequear que está libre?
     log' $ "Creando nuevo concumon al mismo tiempo"
     _ <- forkIO (Concumon.main semLeer sharedGrid semMaxConcu eventChannel)
     signalQSem semLeer
@@ -39,8 +40,11 @@ generarConcumon semLeer sharedGrid semMaxConcu eventChannel = do
     generarConcumon semLeer sharedGrid semMaxConcu eventChannel
 
 --  TODO
---(*) buscarPosicionLibre grid = do
--- haciendo random y verificando hasta encontrar uno libre
+buscarPosicionLibre :: TVar [[Int]] -> IO Posicion
+buscarPosicionLibre grid = do
+    pos <- generarPosRand
+    -- verificar hasta encontrar uno libre
+    return pos
 
 log' :: String -> IO ()
 log' = cgLog "NID"

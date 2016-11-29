@@ -1,6 +1,7 @@
 module Juego
 ( Juego.main
 , Posicion(..)
+, generarPosRand
 ) where
 
 import Config
@@ -8,26 +9,8 @@ import Logger
 import NidoConcumones
 import Control.Concurrent
 import Control.Concurrent.STM
-import Control.Monad
-import Data.Map (Map, (!))
 import qualified Data.Map as Map
 import Grilla
-
-
---Estructura que define el tablero
-data Posicion = Posicion Int Int deriving (Show)
-
-data Estado = Libre
-            | Ocupado
-            | Concumon
-                deriving (Eq, Ord, Show)
-
-data Casillero = Casillero {
-        posicion :: Posicion,
-        estado :: Estado
-        }
--- Tipo que define el tablero para usar con bloques atomically
-type Tablero = TVar [Casillero]
 
 
 -- Juego va a loopear esperando eventos (pueden movimientos de concumones ó jugadores) ó
@@ -58,7 +41,6 @@ main semLeer sharedGrid eventChannel = do
 --hayConcumon = do
 --    return False
     -- TODO
-
 
 log' :: String -> IO ()
 log' = cgLog "JGO"

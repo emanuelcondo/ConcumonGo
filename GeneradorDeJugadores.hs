@@ -5,9 +5,7 @@ module GeneradorDeJugadores
 import Jugador
 import Juego
 import Logger
-import Config
 
-import System.Random
 import Control.Concurrent
 import Control.Concurrent.STM
 
@@ -16,7 +14,7 @@ import Control.Concurrent.STM
 -- y luego hace un readChan a acceptLoginChannel (este último canal podría estar dentro de
 -- Jugador.hs ya que sino se bloquearía el GeneradorDeJugadores).
 
-main :: QSem -> QSem -> TVar [[Int]] ->TChan Int -> TChan Int -> Chan String -> IO ()
+main :: QSem -> QSem -> TVar [[Int]] -> TChan Int -> TChan Int -> Chan String -> IO ()
 main semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan eventChan = do
     log' "Iniciando Generador de Jugadores"
     myAcceptLoginChan <- atomically $ dupTChan acceptLoginChan
@@ -37,34 +35,6 @@ generarJugador idJug semMaxJug semLeer sharedGrid requestLoginChan acceptLoginCh
     log' $ show idJug ++ " ingresó en " ++ show pos ++ ", con " ++ show thrId
     generarJugador (idJug + 1) semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan eventChan
 
-
-generarPosRand :: IO Posicion
-generarPosRand = do
-    genX <- newStdGen
-    genY <- newStdGen
-    maxX <- xGrilla
-    maxY <- yGrilla
-    let x = numRand genX (maxX - 1)
-        y = numRand genY (maxY - 1)
-    return $ Posicion x y
-
-numRand :: StdGen -> Int -> Int
-numRand gen max' = head $ randomRs (0, max') gen
-
--- generarPosRand :: Int -> IO Posicion
--- generarPosRand id'  = do
---     gen <- newStdGen
---     maxX <- xGrilla
---     maxY <- yGrilla
---     let pos = randomPos gen id' maxX maxY
---     print pos
---     return pos
-
--- randomPos :: StdGen -> Int -> Int -> Int -> Posicion
--- randomPos gen id' maxX maxY = Posicion x y
---     where x = (randomRs (maxX) gen) !! (2 * id')
---           y = rand !! (2 * id' + 1)
---           rand = randomRs (maxX, maxY) gen
 
 log' :: String -> IO ()
 log' = cgLog "GDJ"
