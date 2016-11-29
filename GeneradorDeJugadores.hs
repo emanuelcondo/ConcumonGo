@@ -28,7 +28,7 @@ generarJugador :: Int -> QSem -> QSem -> TVar [[Int]] -> TChan Int -> TChan Int 
 generarJugador idJug semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan eventChan = do
     log' $ "Genero Jugador con id " ++ show idJug
     atomically $ writeTChan requestLoginChan idJug
-    -- No escribo más al RLChannel hasta que sea aceptado este,
+    -- No escribo más al RLChan hasta que sea aceptado este,
     -- por lo que no me hace falta chequear que sea para él en el retorno {1}
     _ <- atomically $ readTChan acceptLoginChan
     pos <- generarPosRand
@@ -37,13 +37,34 @@ generarJugador idJug semMaxJug semLeer sharedGrid requestLoginChan acceptLoginCh
     log' $ show idJug ++ " ingresó en " ++ show pos ++ ", con " ++ show thrId
     generarJugador (idJug + 1) semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan eventChan
 
+
 generarPosRand :: IO Posicion
 generarPosRand = do
-    gen <- newStdGen
+    genX <- newStdGen
+    genY <- newStdGen
     maxX <- xGrilla
     maxY <- yGrilla
-    let [x,y] = take 2 $ randomRs (maxX, maxY) gen
+    let x = numRand genX (maxX - 1)
+        y = numRand genY (maxY - 1)
     return $ Posicion x y
+
+numRand :: StdGen -> Int -> Int
+numRand gen max' = head $ randomRs (0, max') gen
+
+-- generarPosRand :: Int -> IO Posicion
+-- generarPosRand id'  = do
+--     gen <- newStdGen
+--     maxX <- xGrilla
+--     maxY <- yGrilla
+--     let pos = randomPos gen id' maxX maxY
+--     print pos
+--     return pos
+
+-- randomPos :: StdGen -> Int -> Int -> Int -> Posicion
+-- randomPos gen id' maxX maxY = Posicion x y
+--     where x = (randomRs (maxX) gen) !! (2 * id')
+--           y = rand !! (2 * id' + 1)
+--           rand = randomRs (maxX, maxY) gen
 
 log' :: String -> IO ()
 log' = cgLog "GDJ"
@@ -53,3 +74,8 @@ log' = cgLog "GDJ"
 -- si fueron ellos los aceptados. Como es un broadcast channel,
 -- y cada uno tendría una copia (dupTChan) de este,
 -- leer no le quitaría el item al canal de los demás clientes.
+
+-- Otra forma de hacer la espera de login sería con un simple
+-- semáforo, tal vez hasta el mismo que ya usa el servidor.
+-- De igual manera, esto limitaría pasarle info al Jugador
+-- recién loggeado.
