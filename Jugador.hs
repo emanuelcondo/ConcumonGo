@@ -74,8 +74,8 @@ moverse idJug semLeer sharedGrid posActual logChan = do
             -- El jugador sólo revisa cuando se mueve (o sea, no se fija si hay un
             -- concumón en su posición actual, sólo en su siguiente posición)
             let posicionesVecinas = (Grilla.getPosicionesVecinas grid posActual)
-            --    posElegida = (elegirPosicionRandom posicionesVecinas) -- TODO debería ser el POSTA
-            let posElegida = Posicion (getX posActual) (getY posActual) -- TODO hardcodeado
+            posElegida <- elegirPosicionRandom posicionesVecinas -- TODO debería ser el POSTA
+            --let posElegida = Posicion (getX posActual) (getY posActual) -- TODO hardcodeado
             let hayConcumon = (Grilla.getValorPosicion grid (getX posElegida) (getY posElegida))
             log' ("Estoy en posición: (x1,y1) me muevo a (x2,y2) (" ++ show idJug ++ ")") logChan
             if hayConcumon == 1
@@ -93,14 +93,14 @@ moverse idJug semLeer sharedGrid posActual logChan = do
             -- Hago un readTvar para ver si el casillero está libre, sino repito.module
             -- mc: Se puede hacer con retry (https://en.wikipedia.org/wiki/Concurrent_Haskell)
             -- Con writeTvar escribo mi nueva posicion en tablero.
-{-
-elegirPosicionRandom :: [Posicion] -> Posicion
+
+elegirPosicionRandom :: [Posicion] -> IO Posicion
 elegirPosicionRandom posiciones = do
     gen <- newStdGen
-    let tam = (length posiciones) - 1
-        index = (numRand gen tam)
+    let tam = length posiciones - 1
+        index = numRand gen tam
     return (posiciones !! index)
--}
+
 
 actualizarPuntaje :: Chan String -> TChan String -> IO ()
 actualizarPuntaje eventChannel logChan = do
