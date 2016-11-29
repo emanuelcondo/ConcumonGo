@@ -20,12 +20,12 @@ main semLeer sharedGrid eventChannel logChan = do
     semMaxConcu <- newQSem maxConcu
     log' ("Hasta " ++ show maxConcu ++ " concumons al mismo tiempo") logChan
 
-    generarConcumon semLeer sharedGrid semMaxConcu eventChannel logChan
+    generarConcumon 0 semLeer sharedGrid semMaxConcu eventChannel logChan
 
     log' "Cerrando Nido de Concumones" logChan
 
-generarConcumon :: QSem -> TVar [[Int]] -> QSem -> Chan String -> TChan String -> IO ()
-generarConcumon semLeer sharedGrid semMaxConcu eventChannel logChan = do
+generarConcumon :: Int -> QSem -> TVar [[Int]] -> QSem -> Chan String -> TChan String -> IO ()
+generarConcumon idConcu semLeer sharedGrid semMaxConcu eventChannel logChan = do
     waitQSem semMaxConcu
     waitQSem semLeer
 
@@ -34,11 +34,11 @@ generarConcumon semLeer sharedGrid semMaxConcu eventChannel logChan = do
     Grilla.updateGrid sharedGrid (getX pos_ini) (getY pos_ini) 1 -- ocupamos la grilla
 
     log' "Creando nuevo concumon" logChan
-    _ <- forkIO (Concumon.main pos_ini semLeer sharedGrid semMaxConcu eventChannel logChan)
+    _ <- forkIO (Concumon.main idConcu pos_ini semLeer sharedGrid semMaxConcu eventChannel logChan)
 
     signalQSem semLeer
     threadDelay $ 3 * 10^(6 :: Int)
-    generarConcumon semLeer sharedGrid semMaxConcu eventChannel logChan
+    generarConcumon (idConcu+1) semLeer sharedGrid semMaxConcu eventChannel logChan
 
 
 buscarPosicionLibre :: [[Int]] -> IO Posicion

@@ -12,23 +12,22 @@ import Data.Foldable (for_)
 import Data.Maybe
 
 
-main :: Posicion -> QSem -> TVar [[Int]] -> QSem -> Chan String -> TChan String -> IO ()
-main posicion semLeer sharedGrid semMaxConcu eventChannel logChan = do
-    log' "Soy un nuevo concumón ... atrapame!!!" logChan
+main :: Int -> Posicion -> QSem -> TVar [[Int]] -> QSem -> Chan String -> TChan String -> IO ()
+main idConcu posicion semLeer sharedGrid semMaxConcu eventChannel logChan = do
+    log' ("Soy un nuevo concumón ... atrapame!!! (id: " ++ show idConcu ++ ")") logChan
 
     delay <- delayConcumons
 
-    moverse posicion semLeer sharedGrid semMaxConcu delay logChan
+    moverse idConcu posicion semLeer sharedGrid semMaxConcu delay logChan
 
 
-moverse :: Posicion -> QSem -> TVar [[Int]] -> QSem -> Int -> TChan String -> IO ()
-moverse posActual semLeer sharedGrid semMaxConcu delay logChan = do
-    log' "Intentando hacer movimiento!" logChan
+moverse :: Int -> Posicion -> QSem -> TVar [[Int]] -> QSem -> Int -> TChan String -> IO ()
+moverse idConcu posActual semLeer sharedGrid semMaxConcu delay logChan = do
+    log' ("Intentando hacer movimiento! (id: " ++ show idConcu ++ ")") logChan
     let x = (getX posActual)
         y = (getY posActual)
     waitQSem semLeer
     grid <- atomically $ readTVar sharedGrid
-    putStrLn $ "Grid: " ++ show grid
     let value = (Grilla.getValorPosicion grid x y)
     if value == 1 -- Verificamos que el concumón no fue atrapado
         then do
@@ -37,15 +36,15 @@ moverse posActual semLeer sharedGrid semMaxConcu delay logChan = do
                 then do
                     Grilla.updateGrid sharedGrid (getX posActual) (getY posActual) 0
                     Grilla.updateGrid sharedGrid (getX proxPos) (getY proxPos) 1
-                    log' "me movi a la Posición ...." logChan
+                    log' ("me movi a la Posición .... (id: " ++ show idConcu ++ ")") logChan
                 else
-                    log' "No hay posiciones libres alrededor" logChan
-            log' ("Delay de " ++ show delay ++ " para moverme de nuevo") logChan
+                    log' ("No hay posiciones libres alrededor"  ++ show idConcu ++ ")") logChan
+            log' ("Delay de " ++ show delay ++ " para moverme de nuevo (id: "  ++ show idConcu ++ ")") logChan
             signalQSem semLeer
             threadDelay $ delay * 10^(6 :: Int)
-            moverse proxPos semLeer sharedGrid semMaxConcu delay logChan
+            moverse idConcu proxPos semLeer sharedGrid semMaxConcu delay logChan
         else do
-            log' "Fui atrapado :(" logChan
+            log' ("Fui atrapado :( (id: " ++ show idConcu ++ ")")  logChan
             signalQSem semLeer
             signalQSem semMaxConcu
 
