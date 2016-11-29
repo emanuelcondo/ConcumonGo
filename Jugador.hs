@@ -77,14 +77,14 @@ moverse idJug semLeer sharedGrid posActual logChan = do
             posElegida <- elegirPosicionRandom posicionesVecinas -- TODO debería ser el POSTA
             --let posElegida = Posicion (getX posActual) (getY posActual) -- TODO hardcodeado
             let hayConcumon = (Grilla.getValorPosicion grid (getX posElegida) (getY posElegida))
-            log' ("Estoy en posición: (x1,y1) me muevo a (x2,y2) (" ++ show idJug ++ ")") logChan
+            log' ("Estoy en posición: "++ show posActual ++" me muevo a "++ show posElegida++" (" ++ show idJug ++ ")") logChan
             if hayConcumon == 1
                 then do
-                    log' ("Encontre un Concumon en (x2,y2). Tirando pokebolaaa!!!.ATRAPADO :) (" ++ show idJug ++ ")") logChan
+                    log' ("Encontre un Concumon en "++ show posElegida ++". Tirando pokebolaaa!!!.ATRAPADO :) (" ++ show idJug ++ ")") logChan
                     Grilla.updateGrid sharedGrid (getX posElegida) (getY posElegida) 0
                     -- TODO meter lo de actualizarPuntaje
                 else
-                    log' "No había nada :(" logChan
+                    log' ("No había nada :( (idJug: " ++ show idJug ++ ")") logChan
             signalQSem semLeer
             threadDelay $ 4 * 10^(6 :: Int) -- TODO sleep debería ser random
 
