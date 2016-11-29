@@ -17,17 +17,17 @@ import Grilla
 -- consultas de Sysadmin, asi que hay que hacer un check cuando se haga un readChan
 -- de eventChannel. En caso de que sea un evento de Sysadmin, deberíamos hacer un print de
 -- los scores (que mejor que usar un hash).
-main :: QSem -> TVar [[Int]]-> Chan String -> IO ()
-main semLeer sharedGrid eventChannel = do
+main :: QSem -> TVar [[Int]]-> Chan String -> TChan String -> IO ()
+main semLeer sharedGrid eventChannel logChan = do
 
-    log' "Iniciando Juego ConcumonGo"
+    log' "Iniciando Juego ConcumonGo" logChan
 
     let scores = Map.empty -- map para guardar puntajes
 
-    _ <- forkIO (NidoConcumones.main semLeer sharedGrid eventChannel)
+    _ <- forkIO (NidoConcumones.main semLeer sharedGrid eventChannel logChan)
     tamMapa <- tamGrilla
-    log' $ "Tamaño de la grilla: " ++ show tamMapa
-    log' "Terminando Juego"
+    log' ("Tamaño de la grilla: " ++ show tamMapa) logChan
+    log' "Terminando Juego" logChan
 
 -- Creación de mapa
 
@@ -42,5 +42,5 @@ main semLeer sharedGrid eventChannel = do
 --    return False
     -- TODO
 
-log' :: String -> IO ()
+log' :: String -> TChan String -> IO ()
 log' = cgLog "JGO"

@@ -7,23 +7,23 @@ import Logger
 import Control.Concurrent
 import Control.Concurrent.STM
 
-main :: QSem -> TVar [[Int]] -> QSem -> Chan String -> IO ()
-main semLeer sharedGrid semMaxConcu eventChannel = do
-    log' "Soy un nuevo concumón... atrapame!!!"
+main :: QSem -> TVar [[Int]] -> QSem -> Chan String -> TChan String -> IO ()
+main semLeer sharedGrid semMaxConcu eventChannel logChan = do
+    log' "Soy un nuevo concumón... atrapame!!!" logChan
 
     delay <- delayConcumons
-    log' $ "Delay de " ++ show delay ++ " antes de moverme"
+    log' ("Delay de " ++ show delay ++ " antes de moverme") logChan
     threadDelay $ delay * 10^(6 :: Int)
-    moverse semLeer sharedGrid semMaxConcu
+    moverse semLeer sharedGrid semMaxConcu logChan
 
     -- Cuando es capturado, se "libera" un lugar para que pueda crearse otro concumón
-    log' $ "Fui atrapado :("
+    log' "Fui atrapado :(" logChan
     signalQSem semMaxConcu
 
 
-moverse :: QSem -> TVar [[Int]] -> QSem -> IO ()
-moverse semLeer sharedGrid semMaxConcu = do
-    log' $ "Soy un concumon, me movi!"
+moverse :: QSem -> TVar [[Int]] -> QSem -> TChan String -> IO ()
+moverse semLeer sharedGrid semMaxConcu logChan = do
+    log' "Soy un concumon, me movi!" logChan
 {-    waitQSem semLeer
     if (posActual == 0)
         then do
@@ -36,7 +36,7 @@ moverse semLeer sharedGrid semMaxConcu = do
         log' $ "me movi a la Posición" xf xi
     signalQSem semLeer
 -}
-    moverse semLeer sharedGrid semMaxConcu
+    moverse semLeer sharedGrid semMaxConcu logChan
 
 -- TODO
 -- buscarPosicionLibreAlrededor grid posActual = do
@@ -44,5 +44,5 @@ moverse semLeer sharedGrid semMaxConcu = do
 -- si no hay lugares libre volver con la misma Posicion
 -- y no moverse
 
-log' :: String -> IO ()
+log' :: String -> TChan String -> IO ()
 log' = cgLog "CMN"

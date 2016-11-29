@@ -1,32 +1,38 @@
 module Logger
-( cgLog
+( loggerThread
+, cgLog
 , endRun
 ) where
 
 import System.IO
 import System.Directory
+import Control.Concurrent.STM
+import Control.Monad
 
-logFilename :: String
+logFilename :: FilePath
 logFilename = "cg.log"
 
-cgLog :: String -> String -> IO ()
-cgLog tag output = do
-    let line = "[" ++ tag ++ "]\t" ++ output
-    (tempName, tempHandle) <- openTempFile "." "logtemp"
-    logfileExists <- doesFileExist logFilename
-    if logfileExists
-        then do
-            handle <- openFile logFilename ReadMode
-            contents <- hGetContents handle
-            hPutStr tempHandle $ contents ++ line ++ "\n"
-            hClose handle
-            removeFile logFilename
-    else
-            hPutStr tempHandle $ line ++ "\n"
-    hClose tempHandle
-    renameFile tempName logFilename
-    -- TODO Discutir si esto todavía es insuficiente
-    -- para óptima concurrencia
+lastLine :: String
+lastLine = "\n"
 
-endRun :: IO ()
-endRun = appendFile logFilename "\n"
+loggerThread :: TChan String -> IO ()
+loggerThread logChan = do
+    logfileExists <- doesFileExist logFilename
+    unless logfileExists $
+        withFile logFilename WriteMode $ \fh ->
+            hPutStrLn fh "LOGFILE CONCUMON GO"
+    forever $ do
+        logLine <- atomically $ readTChan logChan
+        appendFile logFilename logLine
+        when (logLine == lastLine) $
+            return ()
+
+cgLog :: String -> String -> TChan String -> IO ()
+cgLog tag output logChan = do
+    let line = "[" ++ tag ++ "]\t" ++ output ++ "\n"
+    atomically $ writeTChan logChan line
+
+endRun :: TChan String -> IO ()
+endRun logChan = atomically $ writeTChan logChan lastLine
+--endRun :: Either SomeException () -> IO ()
+--endRun _ = appendFile logFilename "\n"

@@ -16,9 +16,8 @@ import Control.Concurrent.STM
 -- jugando. Una vez que deja el juego se hace un signalQSem de semMaxJug para habilitar
 -- al Server para que pueda entrar otro jugador, si es que hay.
 
-main :: Int -> Posicion -> QSem -> QSem -> TVar [[Int]] -> Chan String -> IO ()
+main :: Int -> Posicion -> QSem -> QSem -> TVar [[Int]] -> Chan String -> TChan String -> IO ()
 main = jugar
-
 -- main :: Int -> Posicion -> QSem -> Chan String -> IO ()
 -- main idJug pos semMaxJug eventChannel =
 --     jugar idJug pos semMaxJug eventChannel `catchIOError` handler
@@ -29,23 +28,23 @@ main = jugar
 --     | isEOFError e = putStrLn "wooops"
 --     | otherwise = ioError e
 
-jugar :: Int -> Posicion -> QSem -> QSem -> TVar [[Int]] -> Chan String -> IO ()
-jugar idJug pos semMaxJug semLeer sharedGrid eventChannel = do
+jugar :: Int -> Posicion -> QSem -> QSem -> TVar [[Int]] -> Chan String -> TChan String -> IO ()
+jugar idJug pos semMaxJug semLeer sharedGrid eventChannel logChan = do
 
-    log' $ "Soy un nuevo jugador (id " ++ show idJug ++ ")"
+    log' ("Soy un nuevo jugador (id " ++ show idJug ++ ")") logChan
     --loguearse
     --log' "Logueo correcto."
-    log' $ "Comienzo en " ++ show pos ++ " (id " ++ show idJug ++ ")"
+    log' ("Comienzo en " ++ show pos ++ " (id " ++ show idJug ++ ")") logChan
     --TODO escribir en eventChannel dónde comienzo
-    moverse semLeer sharedGrid
+    moverse semLeer sharedGrid logChan
 
-    actualizarPuntaje eventChannel
+    actualizarPuntaje eventChannel logChan
 
     threadDelay $ 10 * 10^(6 :: Int)---
 
-    log' $ "Ya me cansé (id " ++ show idJug ++ ")"
+    log' ("Ya me cansé (id " ++ show idJug ++ ")") logChan
     signalQSem semMaxJug
-    log' $ "Saliendo del juego (id " ++ show idJug ++ ")"
+    log' ("Saliendo del juego (id " ++ show idJug ++ ")") logChan
 
 
 -- -- Funcion que permite loguear el jugador en el Servidor.module
@@ -56,24 +55,23 @@ jugar idJug pos semMaxJug semLeer sharedGrid eventChannel = do
 -- // El jugador ya se logueó desde Server
 
 -- Funcion que pone a mover el jugador en en tablero.
-moverse :: QSem -> TVar [[Int]] -> IO ()
-moverse semLeer sharedGrid = do
+moverse :: QSem -> TVar [[Int]] -> TChan String -> IO ()
+moverse semLeer sharedGrid logChan = do
     -- Elijo aleatoreamente alguna direccion de casillero contiguo
-    log' "Estoy en posición: (x1,y1) me muevo a (x2,y2)"
+    log' "Estoy en posición: (x1,y1) me muevo a (x2,y2)" logChan
     -- Hago un readTvar para ver si el casillero está libre, sino repito.module
     -- mc: Se puede hacer con retry (https://en.wikipedia.org/wiki/Concurrent_Haskell)
     -- Con writeTvar escribo mi nueva posicion en tablero.
 
 
-actualizarPuntaje :: Chan String -> IO ()
-
-actualizarPuntaje eventChannel = do
-    log' "Encontré concumón, actualizo puntaje"
+actualizarPuntaje :: Chan String -> TChan String -> IO ()
+actualizarPuntaje eventChannel logChan = do
+    log' "Encontré concumón, actualizo puntaje" logChan
 
     --Envio Puntaje al Sysadmin
     writeChan eventChannel "idJugador,Puntaje"
     -- Actualiza su puntaje en el Sysadmin.
 
 
-log' :: String -> IO ()
+log' :: String -> TChan String -> IO ()
 log' = cgLog "JUG"
