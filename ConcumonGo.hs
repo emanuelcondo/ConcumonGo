@@ -20,7 +20,7 @@ main = do
 
     maxJug <- maxJugadores      -- Cantidad Máxima de jugadores
     semMaxJug <- newQSem maxJug     --Semáforo para el Server (para aceptar jugadores de manera acotada)
-    requestLoginChannel <- atomically newTChan      -- Canal de mensajes para login de jugadores
+    requestLoginChannel <- atomically newTChan      -- Canal de mensajes para pedir login de jugadores
     acceptLoginChannel <- atomically newBroadcastTChan      -- Canal de mensajes para aceptar login de jugadores, de tipo Broadcast
     eventChannel <- newChan     -- Canal para movimientos (Concumones y jugadores) y pedidos de scores desde Sysadmin
 

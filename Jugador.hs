@@ -5,6 +5,8 @@ module Jugador
 import Logger
 import Juego
 import Control.Concurrent
+-- import System.IO.Error
+-- import Control.Exception
 
 -- el Jugador va a ejecutar movimientos cada cierto tiempo al azar y lo envía por el canal
 -- haciendo un writeChan de eventChannel y el Juego se va a encargar de procesar
@@ -12,8 +14,22 @@ import Control.Concurrent
 -- jugando. Una vez que deja el juego se hace un signalQSem de semMaxJug para habilitar
 -- al Server para que pueda entrar otro jugador, si es que hay.
 
+
 main :: Int -> Posicion -> QSem -> Chan String -> IO ()
-main idJug pos semMaxJug eventChannel = do
+main = jugar
+
+-- main :: Int -> Posicion -> QSem -> Chan String -> IO ()
+-- main idJug pos semMaxJug eventChannel =
+--     jugar idJug pos semMaxJug eventChannel `catchIOError` handler
+--
+-- ----- TODO: Borrar si no se termina usando
+-- handler :: IOError -> IO ()
+-- handler e
+--     | isEOFError e = putStrLn "wooops"
+--     | otherwise = ioError e
+
+jugar :: Int -> Posicion -> QSem -> Chan String -> IO ()
+jugar idJug pos semMaxJug eventChannel = do
 
     log' $ "Soy un nuevo jugador (id " ++ show idJug ++ ")"
     --loguearse
