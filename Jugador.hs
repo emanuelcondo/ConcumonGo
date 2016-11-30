@@ -38,9 +38,7 @@ jugar idJug pos semMaxJug semLeer sharedGrid eventChannel logChan = do
     --log' "Logueo correcto."
     log' ("Comienzo en " ++ show pos ++ " (id " ++ show idJug ++ ")") logChan
     --TODO escribir en eventChannel dónde comienzo
-    moverse idJug semLeer sharedGrid pos logChan
-
---    actualizarPuntaje eventChannel logChan
+    moverse idJug semLeer sharedGrid pos eventChannel logChan
 
     threadDelay $ 2 * 10^(6 :: Int)---
 
@@ -56,8 +54,8 @@ jugar idJug pos semMaxJug semLeer sharedGrid eventChannel logChan = do
 -- // El jugador ya se logueó desde Server
 
 -- Funcion que pone a mover el jugador en en tablero.
-moverse :: Int -> QSem -> TVar [[Int]] -> Posicion -> TChan String -> IO ()
-moverse idJug semLeer sharedGrid posActual logChan = do
+moverse :: Int -> QSem -> TVar [[Int]] -> Posicion -> Chan String ->TChan String -> IO ()
+moverse idJug semLeer sharedGrid posActual eventChannel logChan = do
     -- tiro la moneda para ver si quiero seguir jugando
     gen <- newStdGen
     let rdm = (numRand gen 2)
@@ -82,13 +80,13 @@ moverse idJug semLeer sharedGrid posActual logChan = do
                 then do
                     log' ("Encontre un Concumon en "++ show posElegida ++". Tirando pokebolaaa!!!.ATRAPADO :) (" ++ show idJug ++ ")") logChan
                     Grilla.updateGrid sharedGrid (getX posElegida) (getY posElegida) 0
-                    -- TODO meter lo de actualizarPuntaje
+                    actualizarPuntaje eventChannel idJug logChan
                 else
                     log' ("No había nada :( (idJug: " ++ show idJug ++ ")") logChan
             signalQSem semLeer
             threadDelay $ 4 * 10^(6 :: Int) -- TODO sleep debería ser random
 
-            moverse idJug semLeer sharedGrid posElegida logChan
+            moverse idJug semLeer sharedGrid posElegida eventChannel logChan
 
             -- Hago un readTvar para ver si el casillero está libre, sino repito.module
             -- mc: Se puede hacer con retry (https://en.wikipedia.org/wiki/Concurrent_Haskell)
@@ -102,12 +100,13 @@ elegirPosicionRandom posiciones = do
     return (posiciones !! index)
 
 
-actualizarPuntaje :: Chan String -> TChan String -> IO ()
-actualizarPuntaje eventChannel logChan = do
+actualizarPuntaje :: Chan String -> Int -> TChan String -> IO ()
+actualizarPuntaje eventChannel idJug logChan = do
     log' "Encontré concumón, actualizo puntaje" logChan
 
     --Envio Puntaje al Sysadmin
-    writeChan eventChannel "idJugador,Puntaje"
+    let idJugS = show idJug
+    writeChan eventChannel idJugS
     -- Actualiza su puntaje en el Sysadmin.
 
 

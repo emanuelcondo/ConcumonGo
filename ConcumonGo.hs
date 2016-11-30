@@ -5,6 +5,7 @@ import qualified Sysadmin
 import Config
 import Logger
 import Grilla
+import ListaPuntaje
 import System.IO
 import Control.Concurrent
 import Control.Concurrent.STM
@@ -32,7 +33,8 @@ main = do
     puntajeChan <- newChan      -- Canal que usa un jugador para avisar que suma puntaje.
 
     -- Estructura para manejar el puntaje acumulado de Jugadores.
-    puntajeTVar <- atomically $ newTVar 0
+    let listaPuntaje = (crearListaPuntaje 100)
+    puntajeTVar <- atomically $ newTVar listaPuntaje
 
     -- Alguna matriz de (0,1) -> 0: no hay Concumon
     --                           1: hay un Concumon

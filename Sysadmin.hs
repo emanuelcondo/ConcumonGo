@@ -5,12 +5,12 @@ module Sysadmin
 import Control.Concurrent
 import Control.Concurrent.STM
 import Logger
-
+import ListaPuntaje
 
 -- Sysadmin cada cierto tiempo envía un mensaje mediante el canal para ver los
 -- scores de los Jugadores.
 
-main :: Chan String -> TVar Int -> IO ()
+main :: Chan String -> TVar [[Int]] -> IO ()
 main eventChannel puntaje = do
     putStrLn "Leo canal para actualizar puntaje"
 
@@ -18,24 +18,20 @@ main eventChannel puntaje = do
     imprimirPuntajes puntaje
 
     threadDelay $ 3 * 10^(6 :: Int)
+    main eventChannel puntaje
 
-actualizarPuntaje :: Chan String -> TVar Int -> IO ()
+--
+actualizarPuntaje :: Chan String -> TVar [[Int]] -> IO ()
 actualizarPuntaje eventChannel puntajeTVar = do
     putStrLn "Actualizando puntaje Jugador"
     --Leo Canal de puntaje
-    let puntajeLeido = readChan eventChannel
+    let idJugador = readChan eventChannel
 
-    puntajeTVarAnterior<- atomRead puntajeTVar
-   -- putStrLn $ "Puntaje Anterior: " ++ show puntajeTVarAnterior
-    appV ((+) 10) puntajeTVar
-    puntajeNuevo <- atomRead puntajeTVar
-    putStrLn $ "PuntajeNuevo: " ++ show puntajeNuevo
+    ListaPuntaje.updateListaPuntaje puntajeTVar 3 1 0
 
-atomRead = atomically . readTVar
-appV fn x = atomically $ readTVar x >>= writeTVar x . fn
+-- Imprime la lista entera de Jugadores con sus puntajes.
+imprimirPuntajes :: TVar [[Int]] -> IO()
+imprimirPuntajes puntajeTVar = do
+    dato <- atomically $ readTVar puntajeTVar
 
-imprimirPuntajes :: TVar Int -> IO ()
-imprimirPuntajes puntajeTVar= do
-    puntaje<- atomRead puntajeTVar
-    putStrLn $ "Puntaje Actual:" ++ show puntaje
-
+    putStrLn $ "Puntaje Actual:" ++ show dato
