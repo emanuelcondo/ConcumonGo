@@ -18,7 +18,7 @@ import Control.Concurrent.STM
 -- jugando. Una vez que deja el juego se hace un signalQSem de semMaxJug para habilitar
 -- al Server para que pueda entrar otro jugador, si es que hay.
 
-main :: Int -> Posicion -> QSem -> QSem -> TVar [[Int]] -> Chan String -> TChan String -> IO ()
+main :: Int -> Posicion -> QSem -> QSem -> TVar [[Int]] -> Chan Int -> TChan String -> IO ()
 main = jugar
 -- main :: Int -> Posicion -> QSem -> Chan String -> IO ()
 -- main idJug pos semMaxJug eventChannel =
@@ -30,15 +30,15 @@ main = jugar
 --     | isEOFError e = putStrLn "wooops"
 --     | otherwise = ioError e
 
-jugar :: Int -> Posicion -> QSem -> QSem -> TVar [[Int]] -> Chan String -> TChan String -> IO ()
-jugar idJug pos semMaxJug semLeer sharedGrid eventChannel logChan = do
+jugar :: Int -> Posicion -> QSem -> QSem -> TVar [[Int]] -> Chan Int -> TChan String -> IO ()
+jugar idJug pos semMaxJug semLeer sharedGrid puntajeChan logChan = do
 
     log' ("Soy un nuevo jugador (id " ++ show idJug ++ ")") logChan
     --loguearse
     --log' "Logueo correcto."
     log' ("Comienzo en " ++ show pos ++ " (id " ++ show idJug ++ ")") logChan
     --TODO escribir en eventChannel dónde comienzo
-    moverse idJug semLeer sharedGrid pos eventChannel logChan
+    moverse idJug semLeer sharedGrid pos puntajeChan logChan
 
     threadDelay $ 2 * 10^(6 :: Int)---
 
@@ -54,8 +54,8 @@ jugar idJug pos semMaxJug semLeer sharedGrid eventChannel logChan = do
 -- // El jugador ya se logueó desde Server
 
 -- Funcion que pone a mover el jugador en en tablero.
-moverse :: Int -> QSem -> TVar [[Int]] -> Posicion -> Chan String ->TChan String -> IO ()
-moverse idJug semLeer sharedGrid posActual eventChannel logChan = do
+moverse :: Int -> QSem -> TVar [[Int]] -> Posicion -> Chan Int ->TChan String -> IO ()
+moverse idJug semLeer sharedGrid posActual puntajeChan logChan = do
     -- tiro la moneda para ver si quiero seguir jugando
     gen <- newStdGen
     let rdm = (numRand gen 2)
@@ -80,13 +80,13 @@ moverse idJug semLeer sharedGrid posActual eventChannel logChan = do
                 then do
                     log' ("Encontre un Concumon en "++ show posElegida ++". Tirando pokebolaaa!!!.ATRAPADO :) (" ++ show idJug ++ ")") logChan
                     Grilla.updateGrid sharedGrid (getX posElegida) (getY posElegida) 0
-                    actualizarPuntaje eventChannel idJug logChan
+                    actualizarPuntaje puntajeChan idJug logChan
                 else
                     log' ("No había nada :( (idJug: " ++ show idJug ++ ")") logChan
             signalQSem semLeer
             threadDelay $ 4 * 10^(6 :: Int) -- TODO sleep debería ser random
 
-            moverse idJug semLeer sharedGrid posElegida eventChannel logChan
+            moverse idJug semLeer sharedGrid posElegida puntajeChan logChan
 
             -- Hago un readTvar para ver si el casillero está libre, sino repito.module
             -- mc: Se puede hacer con retry (https://en.wikipedia.org/wiki/Concurrent_Haskell)
@@ -100,13 +100,13 @@ elegirPosicionRandom posiciones = do
     return (posiciones !! index)
 
 
-actualizarPuntaje :: Chan String -> Int -> TChan String -> IO ()
+actualizarPuntaje :: Chan Int -> Int -> TChan String -> IO ()
 actualizarPuntaje eventChannel idJug logChan = do
     log' "Encontré concumón, actualizo puntaje" logChan
 
     --Envio Puntaje al Sysadmin
-    let idJugS = show idJug
-    writeChan eventChannel idJugS
+    --let idJugS = show idJug
+    writeChan eventChannel idJug
     -- Actualiza su puntaje en el Sysadmin.
 
 

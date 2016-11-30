@@ -81,6 +81,7 @@ commands logChan =  [ ("sysadmin", sysadmin)
 
 sysadmin :: IO ()
 sysadmin = putStrLn "not implemented"
+-- TODO: Hacer que este comando ejecute Sysadmin.imprimirPuntajes puntajeTVar""
 
 mostrarAyuda :: TChan String -> IO ()
 mostrarAyuda logChan = do

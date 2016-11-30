@@ -6,32 +6,34 @@ import Control.Concurrent
 import Control.Concurrent.STM
 import Logger
 import ListaPuntaje
+import System.IO.Unsafe
 
--- Sysadmin cada cierto tiempo envía un mensaje mediante el canal para ver los
--- scores de los Jugadores.
 
-main :: Chan String -> TVar [[Int]] -> IO ()
-main eventChannel puntaje = do
+-- Funcion que cada x segundos lee del canal de puntaje y actualiza el puntaje en TVAR
+main :: Chan Int -> TVar [[Int]] -> IO ()
+main puntajeChan puntajeTVar = do
     putStrLn "Leo canal para actualizar puntaje"
 
-    actualizarPuntaje eventChannel puntaje
-    imprimirPuntajes puntaje
+    actualizarPuntaje puntajeChan puntajeTVar
+    imprimirPuntajes puntajeTVar
 
     threadDelay $ 3 * 10^(6 :: Int)
-    main eventChannel puntaje
+    main puntajeChan puntajeTVar
 
---
-actualizarPuntaje :: Chan String -> TVar [[Int]] -> IO ()
-actualizarPuntaje eventChannel puntajeTVar = do
-    putStrLn "Actualizando puntaje Jugador"
-    --Leo Canal de puntaje
-    let idJugador = readChan eventChannel
 
-    ListaPuntaje.updateListaPuntaje puntajeTVar 3 1 0
+-- Lee del canal y suma 10 puntos al idJugador que leyo del canal
+actualizarPuntaje :: Chan Int -> TVar [[Int]] -> IO ()
+actualizarPuntaje puntajeChan puntajeTVar = do
+
+    let idJ = unsafePerformIO $ readChan puntajeChan
+    ListaPuntaje.updateListaPuntaje puntajeTVar idJ
+
 
 -- Imprime la lista entera de Jugadores con sus puntajes.
 imprimirPuntajes :: TVar [[Int]] -> IO()
 imprimirPuntajes puntajeTVar = do
     dato <- atomically $ readTVar puntajeTVar
+    putStrLn $ "Puntajes Actuales:" ++ show dato
 
-    putStrLn $ "Puntaje Actual:" ++ show dato
+
+-- TODO: Agregar log!

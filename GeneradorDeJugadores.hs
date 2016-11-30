@@ -14,26 +14,26 @@ import Control.Concurrent.STM
 -- y luego hace un readChan a acceptLoginChannel (este último canal podría estar dentro de
 -- Jugador.hs ya que sino se bloquearía el GeneradorDeJugadores).
 
-main :: QSem -> QSem -> TVar [[Int]] -> TChan Int -> TChan Int -> Chan String -> TChan String -> IO ()
-main semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan eventChan logChan = do
+main :: QSem -> QSem -> TVar [[Int]] -> TChan Int -> TChan Int -> Chan Int -> TChan String -> IO ()
+main semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan puntajeChan logChan = do
     log' "Iniciando Generador de Jugadores" logChan
     myAcceptLoginChan <- atomically $ dupTChan acceptLoginChan
-    generarJugador 1 semMaxJug semLeer sharedGrid requestLoginChan myAcceptLoginChan eventChan logChan
+    generarJugador 1 semMaxJug semLeer sharedGrid requestLoginChan myAcceptLoginChan puntajeChan logChan
     -- TODO: waitChildren
     log' "Cerrando Generador De Jugadores" logChan
 
-generarJugador :: Int -> QSem -> QSem -> TVar [[Int]] -> TChan Int -> TChan Int -> Chan String -> TChan String -> IO ()
-generarJugador idJug semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan eventChan logChan = do
+generarJugador :: Int -> QSem -> QSem -> TVar [[Int]] -> TChan Int -> TChan Int -> Chan Int -> TChan String -> IO ()
+generarJugador idJug semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan puntajeChan logChan = do
     log' ("Genero Jugador con id " ++ show idJug) logChan
     atomically $ writeTChan requestLoginChan idJug
     -- No escribo más al RLChan hasta que sea aceptado este,
     -- por lo que no me hace falta chequear que sea para él en el retorno {1}
     _ <- atomically $ readTChan acceptLoginChan
     pos <- generarPosRand
-    thrId <- forkIO (Jugador.main idJug pos semMaxJug semLeer sharedGrid eventChan logChan)
+    thrId <- forkIO (Jugador.main idJug pos semMaxJug semLeer sharedGrid puntajeChan logChan)
     -- TODO: Reemplazar por método que los guarde y espere al final
     log' (show idJug ++ " ingresó en " ++ show pos ++ ", con " ++ show thrId) logChan
-    generarJugador (idJug + 1) semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan eventChan logChan
+    generarJugador (idJug + 1) semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan puntajeChan logChan
 
 
 log' :: String -> TChan String -> IO ()
