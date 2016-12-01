@@ -34,5 +34,3 @@ cgLog tag output logChan = do
 
 endRun :: TChan String -> IO ()
 endRun logChan = atomically $ writeTChan logChan lastLine
---endRun :: Either SomeException () -> IO ()
---endRun _ = appendFile logFilename "\n"

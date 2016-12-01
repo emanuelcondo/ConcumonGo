@@ -12,7 +12,7 @@ import Config
 data Posicion = Posicion Int Int deriving (Show)
 
 instance Eq Posicion where
-    (Posicion a b) == (Posicion c d) = (a == c && b == d)
+    (Posicion a b) == (Posicion c d) = a == c && b == d
 
 getX :: Posicion -> Int
 getX (Posicion x _) = x
@@ -33,34 +33,41 @@ data Casillero = Casillero {
 type Tablero = TVar [Casillero]
 
 
-crearGrilla ancho alto = [ [0 | y <-[1..ancho]] | x <- [1..alto]]
+crearGrilla :: (Num t, Enum t) => t -> t -> [[t]]
+crearGrilla ancho alto = [ [0 | _ <- [1 .. ancho]] | _ <- [1 .. alto]]
 
+getValorPosicion :: [[a]] -> Int -> Int -> a
 getValorPosicion grilla x y = grilla !! x !! y
 
-replaceAtIndex n item list = a ++ (item:b) where (a, (_:b)) = splitAt n list
+replaceAtIndex :: Int -> a -> [a] -> [a]
+replaceAtIndex n item list = a ++ (item:b)
+    where (a, _:b) = splitAt n list
 
-replaceElementMatrix x y item matrix = a ++ (replaceAtIndex y item (matrix !! x):b) where (a, (_:b)) = splitAt x matrix
+replaceElementMatrix :: Int -> Int -> a -> [[a]] -> [[a]]
+replaceElementMatrix x y item matrix = a ++ (replaceAtIndex y item (matrix !! x):b) where (a, _:b) = splitAt x matrix
 
 -- sharedGrid: grilla compartida (TVar)
 -- x: posición x
 -- y: posición y
 -- value: nuevo valor a setear en la grilla
-updateGrid sharedGrid x y value = do
+updateGrid :: TVar [[a]] -> Int -> Int -> a -> IO ()
+updateGrid sharedGrid x y value =
     atomically ( do
         dato <- readTVar sharedGrid
         writeTVar sharedGrid (replaceElementMatrix x y value dato) )
 
 getPosicionesVecinas :: [[Int]] -> Posicion -> [Posicion]
-getPosicionesVecinas grid posicion = do --[] --TODO agregar funcionalidad
-    let x_ini = (getX posicion) - 1
-        x_fin = (getX posicion) + 1
-        y_ini = (getY posicion) - 1
-        y_fin = (getY posicion) + 1
-        posicionesAlrededor = [Posicion x y | y <- [y_ini..y_fin], x <- [x_ini..x_fin]]
-    (filtrarPosicionesValidas grid posicionesAlrededor posicion [])
+getPosicionesVecinas grid pos =
+    filtrarPosicionesValidas grid posicionesAlrededor pos []
+    where x_ini = getX pos - 1
+          x_fin = getX pos + 1
+          y_ini = getY pos - 1
+          y_fin = getY pos + 1
+          posicionesAlrededor = [Posicion x y | y <- [y_ini..y_fin], x <- [x_ini..x_fin]]
+
 
 filtrarPosicionesValidas :: [[Int]] -> [Posicion] -> Posicion -> [Posicion]-> [Posicion]
-filtrarPosicionesValidas grid posiciones posActual result = do
+filtrarPosicionesValidas grid posiciones posActual result =
     if null posiciones
         then
             result
@@ -70,10 +77,10 @@ filtrarPosicionesValidas grid posiciones posActual result = do
                 then
                     filtrarPosicionesValidas grid (tail posiciones) posActual result
                 else do
-                    let maxX = (length grid) - 1
-                        maxY = (length (grid !! 0)) - 1
-                        x = (getX posAux)
-                        y = (getY posAux)
+                    let maxX = length grid - 1
+                        maxY = length (head grid) - 1
+                        x = getX posAux
+                        y = getY posAux
                     if x > maxX || x < 0 || y > maxY || y < 0
                         then
                             filtrarPosicionesValidas grid (tail posiciones) posActual result

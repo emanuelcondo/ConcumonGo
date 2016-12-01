@@ -4,14 +4,14 @@ where
 import System.IO.Unsafe
 import Control.Concurrent
 
+-- Esto no se usó al final, pero eran acciones ayuda
+-- para registrar a los hijos y después esperarlos.
+-- Al no haber necesidad de ellas, no se usaron.
+
 children :: MVar [MVar ()]
 children = unsafePerformIO (newMVar [])
 {-# NOINLINE children #-}
 
---- Antes de que esta función sea usada
--- Hay que hacer que los hilos padre hagan terminar a sus hijos
--- Y si es usada por más de un hilo, que no se pisen de alguna forma mágica
--- (ConcumonGo no tendría que esperar a los hijos de NidoConcumones)
 waitForChildren :: IO ()
 waitForChildren = do
   cs <- takeMVar children

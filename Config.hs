@@ -10,9 +10,10 @@ module Config
 import Data.ConfigFile
 import Data.Either.Utils
 
------ Forma:
--- val <- xGrilla
--- [print val]
+configFileName :: FilePath
+configFileName = "cg.cfg"
+
+-- Para acceder a la configuración
 
 xGrilla :: IO Int
 xGrilla = getSetting "xgrilla"
@@ -37,7 +38,7 @@ maxJugadores = getSetting "maxjugadores"
 
 
 getSetting :: String -> IO Int
-getSetting x = do
-    val <- readfile emptyCP "cg.cfg"
+getSetting setting = do
+    val <- readfile emptyCP configFileName
     let cp = forceEither val
-    return . forceEither $ get cp "Default" x
+    return . forceEither $ get cp "Default" setting

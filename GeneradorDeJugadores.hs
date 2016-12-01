@@ -3,38 +3,38 @@ module GeneradorDeJugadores
 ) where
 
 import Jugador
-import Juego
+import Grilla
 import Logger
+import ListaPuntaje
 
 import Control.Concurrent
 import Control.Concurrent.STM
 
--- el main debe tener un loop donde cada cierto tiempo se intenta loggear
--- un nuevo jugador (incrementando el id, más fácil), hace un writeChan de requestLoginChannel
--- y luego hace un readChan a acceptLoginChannel (este último canal podría estar dentro de
--- Jugador.hs ya que sino se bloquearía el GeneradorDeJugadores).
+-- Cada vez que hay lugar para loggear un nuevo jugador, lo genera, id creciente
+-- Esto se media entre los canales de login, para requestear y ser aceptado
 
-main :: QSem -> QSem -> TVar [[Int]] -> TChan Int -> TChan Int -> Chan Int -> TChan String -> IO ()
+main :: QSem -> QSem -> TVar [[Int]] -> TChan Int -> TChan Int -> TChan Int -> TChan String -> IO ()
 main semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan puntajeChan logChan = do
     log' "Iniciando Generador de Jugadores" logChan
     myAcceptLoginChan <- atomically $ dupTChan acceptLoginChan
     generarJugador 1 semMaxJug semLeer sharedGrid requestLoginChan myAcceptLoginChan puntajeChan logChan
-    -- TODO: waitChildren
     log' "Cerrando Generador De Jugadores" logChan
 
-generarJugador :: Int -> QSem -> QSem -> TVar [[Int]] -> TChan Int -> TChan Int -> Chan Int -> TChan String -> IO ()
-generarJugador idJug semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan puntajeChan logChan = do
-    log' ("Genero Jugador con id " ++ show idJug) logChan
-    atomically $ writeTChan requestLoginChan idJug
-    -- No escribo más al RLChan hasta que sea aceptado este,
-    -- por lo que no me hace falta chequear que sea para él en el retorno {1}
-    _ <- atomically $ readTChan acceptLoginChan
-    pos <- generarPosRand
-    thrId <- forkIO (Jugador.main idJug pos semMaxJug semLeer sharedGrid puntajeChan logChan)
-    -- TODO: Reemplazar por método que los guarde y espere al final
-    log' (show idJug ++ " ingresó en " ++ show pos ++ ", con " ++ show thrId) logChan
-    generarJugador (idJug + 1) semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan puntajeChan logChan
-
+generarJugador :: Int -> QSem -> QSem -> TVar [[Int]] -> TChan Int -> TChan Int -> TChan Int -> TChan String -> IO ()
+generarJugador idJug semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan puntajeChan logChan
+    | idJug >= maxGenJug = do
+        log' "Límite de jugadores para generar alcanzado" logChan
+        putStrLn "Límite de jugadores para generar alcanzado"
+    | otherwise = do
+        log' ("Genero Jugador con id " ++ show idJug) logChan
+        atomically $ writeTChan requestLoginChan idJug
+        -- No escribo más al RLChan hasta que sea aceptado este,
+        -- por lo que no hace falta chequear que sea para él en el retorno {1}
+        _ <- atomically $ readTChan acceptLoginChan
+        pos <- generarPosRand
+        _ <- forkIO (Jugador.main idJug pos semMaxJug semLeer sharedGrid puntajeChan logChan)
+        log' (show idJug ++ " ingresó en " ++ show pos) logChan
+        generarJugador (idJug + 1) semMaxJug semLeer sharedGrid requestLoginChan acceptLoginChan puntajeChan logChan
 
 log' :: String -> TChan String -> IO ()
 log' = cgLog "GDJ"

@@ -1,39 +1,58 @@
 module Sysadmin
 ( Sysadmin.main
+, imprimirPuntajes
 ) where
 
+import Control.Monad
 import Control.Concurrent
 import Control.Concurrent.STM
 import Logger
 import ListaPuntaje
-import System.IO.Unsafe
 
 
--- Funcion que cada x segundos lee del canal de puntaje y actualiza el puntaje en TVAR
-main :: Chan Int -> TVar [[Int]] -> IO ()
-main puntajeChan puntajeTVar = do
-    putStrLn "Leo canal para actualizar puntaje"
+-- Lee del canal de puntaje y actualiza el puntaje en el TVar; se imprimen cada 15 s
+main :: TChan Int -> TVar [[Int]] -> TChan String -> IO ()
+main puntajeChan puntajeTVar logChan = do
+    log' "Inicio. Leo del canal de puntos para actualizar puntaje" logChan
+    -- Loggeo el puntaje cada 15 segundos
+    _ <- forkIO $ forever $ do
+        loggearPuntajes puntajeTVar logChan
+        threadDelay $ 15 * 10^(6 :: Int)
+    -- Actualizo el puntaje continuamente
+    forever $
+        actualizarPuntaje puntajeChan puntajeTVar logChan
 
-    actualizarPuntaje puntajeChan puntajeTVar
-    imprimirPuntajes puntajeTVar
 
-    threadDelay $ 3 * 10^(6 :: Int)
-    main puntajeChan puntajeTVar
-
-
--- Lee del canal y suma 10 puntos al idJugador que leyo del canal
-actualizarPuntaje :: Chan Int -> TVar [[Int]] -> IO ()
-actualizarPuntaje puntajeChan puntajeTVar = do
-
-    let idJ = unsafePerformIO $ readChan puntajeChan
+-- Lee del canal y suma 10 puntos al idJugador leído del canal
+actualizarPuntaje :: TChan Int -> TVar [[Int]] -> TChan String -> IO ()
+actualizarPuntaje puntajeChan puntajeTVar logChan = do
+    idJ <- atomically $ readTChan puntajeChan
+    log' ("Agrego puntos a jugador #" ++ show idJ) logChan
     ListaPuntaje.updateListaPuntaje puntajeTVar idJ
 
 
--- Imprime la lista entera de Jugadores con sus puntajes.
+-- Imprime la lista entera de Jugadores con sus puntajes
 imprimirPuntajes :: TVar [[Int]] -> IO()
 imprimirPuntajes puntajeTVar = do
     dato <- atomically $ readTVar puntajeTVar
-    putStrLn $ "Puntajes Actuales:" ++ show dato
+    putStr "\nPuntajes actuales\n-----------------\nId\tPuntaje"
+    putStrLn $ appendFilaPuntaje 0 dato "" ++ "\n"
 
 
--- TODO: Agregar log!
+-- Loggea la lista entera de Jugadores con sus puntajes
+loggearPuntajes :: TVar [[Int]] -> TChan String -> IO()
+loggearPuntajes puntajeTVar logChan = do
+    dato <- atomically $ readTVar puntajeTVar
+    log' ("Puntajes actuales\n-----------------\nId\tPuntaje"
+            ++ appendFilaPuntaje 0 dato "" ++ "\n") logChan
+
+
+appendFilaPuntaje :: Int -> [[Int]] -> String -> String
+appendFilaPuntaje _ [] s = s
+appendFilaPuntaje n (x:xs) s
+    | head x < 0 = appendFilaPuntaje (n+1) xs s
+    | otherwise = appendFilaPuntaje (n+1) xs (s ++ "\n" ++ show n ++ "\t" ++ show (head x))
+
+
+log' :: String -> TChan String -> IO ()
+log' = cgLog "SYS"
