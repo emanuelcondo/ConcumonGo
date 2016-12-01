@@ -32,7 +32,7 @@ moverse idConcu posActual semLeer sharedGrid semMaxConcu delay logChan = do
                 then do
                     Grilla.updateGrid sharedGrid (getX posActual) (getY posActual) 0
                     Grilla.updateGrid sharedGrid (getX proxPos) (getY proxPos) 1
-                    log' ("Me moví a la "++show proxPos++". (idConcu: " ++ show idConcu ++ ")") logChan
+                    log' ("Me moví a la "++show proxPos++" (idConcu: " ++ show idConcu ++ ")") logChan
                 else
                     log' ("No hay posiciones libres alrededor. (idConcu: "  ++ show idConcu ++ ")") logChan
             log' ("Delay de " ++ show delay ++ " para moverme de nuevo (idConcu: "  ++ show idConcu ++ ")") logChan

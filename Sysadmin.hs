@@ -27,8 +27,10 @@ main puntajeChan puntajeTVar logChan = do
 actualizarPuntaje :: TChan Int -> TVar [[Int]] -> TChan String -> IO ()
 actualizarPuntaje puntajeChan puntajeTVar logChan = do
     idJ <- atomically $ readTChan puntajeChan
-    log' ("Agrego puntos a jugador #" ++ show idJ) logChan
-    ListaPuntaje.updateListaPuntaje puntajeTVar idJ
+    nuevoPuntaje <- ListaPuntaje.updateListaPuntaje puntajeTVar idJ
+    if nuevoPuntaje > 0
+        then log' ("Agregué puntos a jugador #" ++ show idJ) logChan
+        else log' ("Inicializo puntaje de jugador #" ++ show idJ) logChan
 
 
 -- Imprime la lista entera de Jugadores con sus puntajes

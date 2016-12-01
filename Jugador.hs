@@ -38,7 +38,7 @@ moverse idJug semLeer sharedGrid posActual puntajeChan logChan = do
         else do
             -- Elijo aleatoriamente alguna dirección de casillero contiguo
             waitQSem semLeer  -- {2}
-            log' ("Intentando hacer movimiento! (" ++ show idJug ++ ")") logChan
+            log' ("Intentando hacer movimiento! (id " ++ show idJug ++ ")") logChan
             grid <- atomically $ readTVar sharedGrid
 
             -- El jugador sólo revisa cuando se mueve (o sea, no se fija si hay un
@@ -47,15 +47,15 @@ moverse idJug semLeer sharedGrid posActual puntajeChan logChan = do
             posElegida <- elegirPosicionRandom posicionesVecinas
 
             let hayConcumon = Grilla.getValorPosicion grid (getX posElegida) (getY posElegida)
-            log' ("Estoy en posición "++ show posActual ++" y me muevo a "++ show posElegida++" (" ++ show idJug ++ ")") logChan
+            log' ("Estoy en posición "++ show posActual ++" y me muevo a "++ show posElegida++" (id " ++ show idJug ++ ")") logChan
             if hayConcumon == 1
                 then do
-                    log' ("Encontré un concumón en "++ show posElegida ++". Tirando pokebolaaa ... ATRAPADO! :) (" ++ show idJug ++ ")") logChan
+                    log' ("Encontré un concumón en "++ show posElegida ++". Tirando pokebolaaa ... ATRAPADO! :) (id " ++ show idJug ++ ")") logChan
                     -- Atrapo al concumón
                     Grilla.updateGrid sharedGrid (getX posElegida) (getY posElegida) 0
                     actualizarPuntaje puntajeChan idJug logChan
                 else
-                    log' ("No había nada :( ... (idJug: " ++ show idJug ++ ")") logChan
+                    log' ("No había nada :( ... (id " ++ show idJug ++ ")") logChan
             signalQSem semLeer
 
             threadDelay $ numRand gen 10 * 10^(6 :: Int)
@@ -70,7 +70,7 @@ elegirPosicionRandom posiciones = do
 
 actualizarPuntaje :: TChan Int -> Int -> TChan String -> IO ()
 actualizarPuntaje puntajeChan idJug logChan = do
-    log' ("Encontré un concumón!!!!!!!!!!!!!! Actualizo mi puntaje (" ++ show idJug ++ ")") logChan
+    log' ("Encontré un concumón!!!!!!!!!!!!!! Actualizo mi puntaje (id " ++ show idJug ++ ")") logChan
     --Envío puntaje al Sysadmin
     atomically $ writeTChan puntajeChan idJug
 

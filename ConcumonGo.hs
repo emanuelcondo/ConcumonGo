@@ -86,6 +86,7 @@ mostrarAyuda logChan = do
     putStrLn "\thelp - mostrar esta ayuda"
     putStrLn "\tquit - terminar el juego"
     putStrLn "\tsysadmin - verificar las estadísticas de los jugadores"
+    putStrLn ""
 
 terminar :: IO ()
 terminar = putStrLn "Cerrando Concumon GO!"
